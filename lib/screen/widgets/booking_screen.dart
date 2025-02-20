@@ -111,7 +111,8 @@ class _BookingScreenState extends State<BookingScreen> {
                             Text("${item['cloth_name']}",
                                 style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text("Price per item: ₹${currentPrices[index]}",
+                            Text(
+                                "Price per item: ₹${currentPrices[index].floor()}",
                                 style: Theme.of(context).textTheme.bodySmall),
                             const SizedBox(height: 16),
                             Row(
@@ -436,16 +437,15 @@ class _BookingScreenState extends State<BookingScreen> {
                     return;
                   }
 
+                  // Extract item IDs, ensuring they are valid integers
                   final itemIds = widget.selectedClothes
                       .map((item) {
                         final id = item['id'];
                         print('Mapped ID: $id');
 
-                        // Check if the ID is a valid integer and not null
                         if (id is int) {
                           return id;
                         } else if (id is String) {
-                          // If id is a string, attempt to parse it
                           final parsedId = int.tryParse(id);
                           if (parsedId != null) {
                             return parsedId;
@@ -460,32 +460,39 @@ class _BookingScreenState extends State<BookingScreen> {
                       })
                       .where((id) => id != null) // Filter out null values
                       .toList()
-                      .cast<int>(); // Cast to List<int>
+                      .cast<int>();
 
                   print('Final Item IDs: $itemIds');
 
-                  final prices = currentPrices
-                      .map((price) => price.toDouble())
-                      .toList(); // Convert to List<double>
-                  final quantities = counters;
-                  print(controller.selectedAddonNames);
-                  print(controller.selectedAddonPrices);
+                  // Calculate total price per item (price * quantity)
+                  final prices = List.generate(currentPrices.length, (index) {
+                    return (currentPrices[index] * counters[index]).toDouble();
+                  });
 
-                  //Call the bookOrder function
+                  final quantities = counters;
+
+                  print("Selected Add-ons: ${controller.selectedAddonNames}");
+                  print(
+                      "Selected Add-on Prices: ${controller.selectedAddonPrices}");
+                  print("Final Prices (Total per item): $prices");
+
+                  // Call the bookOrder function with correct total prices
                   await controller.bookOrder(
-                      context: context,
-                      storeId: storeId,
-                      customerId: widget.userId,
-                      itemIds: itemIds,
-                      prices: prices,
-                      quantities: quantities,
-                      selcolor: controller.selectedColorIds,
-                      selpattern: controller.selectedDefectIds,
-                      selbrand: controller.selectedStainIds,
-                      remarks: controller.remarks,
-                      addonsname: controller.selectedAddonNames,
-                      addonsprice: controller.selectedAddonPrices);
-                  print(itemIds);
+                    context: context,
+                    storeId: storeId,
+                    customerId: widget.userId,
+                    itemIds: itemIds,
+                    prices: prices, // Sending total prices (price * quantity)
+                    quantities: quantities,
+                    selcolor: controller.selectedColorIds,
+                    selpattern: controller.selectedDefectIds,
+                    selbrand: controller.selectedStainIds,
+                    remarks: controller.remarks,
+                    addonsname: controller.selectedAddonNames,
+                    addonsprice: controller.selectedAddonPrices,
+                  );
+
+                  print("Order placed successfully with item prices: $prices");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
@@ -499,7 +506,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   'Add Order',
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
-              ),
+              )
             ],
           ),
         ),
