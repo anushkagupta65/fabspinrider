@@ -1,14 +1,15 @@
 import 'package:fabspinrider/booking/controller/booking_controller.dart';
+import 'package:fabspinrider/screen/widgets/booking_screen_helpers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BookingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> selectedClothes;
-  final userId;
+  final String userId;
 
-  BookingScreen(
+  const BookingScreen(
       {super.key, required this.selectedClothes, required this.userId});
 
   @override
@@ -77,326 +78,6 @@ class _BookingScreenState extends State<BookingScreen> {
     print("Request Body: $requestBody");
   }
 
-  void showSearchDialog(BuildContext context, int clothIndex,
-      BookingController controller, int id) {
-    final TextEditingController searchController = TextEditingController();
-
-    // Initialize selections for the cloth index
-    controller.initializeClothSelections(clothIndex);
-    print("id adter dialog   $id   ");
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Search Addons'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: 'Search',
-                hintText: 'Enter addon name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (query) {
-                controller.fetchAddons(query); // Fetch data on search
-              },
-            ),
-            SizedBox(height: 20),
-            Obx(() {
-              if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (controller.addons.isEmpty) {
-                return Text('No addons found');
-              }
-              return SizedBox(
-                width: double.maxFinite,
-                height: 200,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: controller.addons.length,
-                  itemBuilder: (context, index) {
-                    final addon = controller.addons[index];
-                    final isSelected = controller.selectedAddonNames[id]
-                            ?.contains(addon['name']) ??
-                        false;
-
-                    return CheckboxListTile(
-                      title: Text(addon['name']),
-                      subtitle: Text('Price: ${addon['price']}'),
-                      value: isSelected,
-                      onChanged: (value) {
-                        final price =
-                            (double.tryParse(addon['price']) ?? 0.0).floor();
-                        if (value == true) {
-                          // Add the item
-                          controller.addAddonToCloth(id, addon['name'], price);
-                          controller.finalizeSelections();
-                          Navigator.pop(context);
-                        } else {
-                          // Remove the item
-                          controller.removeAddonFromCloth(
-                              id, addon['name'], price);
-                          Navigator.pop(context);
-                        }
-
-                        controller.refreshSelections(); // Refresh the UI
-                      },
-                    );
-                  },
-                ),
-              );
-            }),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              print('Selected Addons for cloth $clothIndex:');
-              print('Names: ${controller.selectedAddonNames[clothIndex]}');
-              print('Prices: ${controller.selectedAddonPrices[clothIndex]}');
-              Get.back();
-            },
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void showRemarksDialog(BuildContext context, int index) {
-    final TextEditingController remarksController = TextEditingController();
-
-    // Ensure the remarks list is initialized for the given index
-    controller.initializeRemarks(index);
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Enter Remarks'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: remarksController,
-              decoration: InputDecoration(
-                labelText: 'Remarks',
-                border: OutlineInputBorder(),
-                hintText: 'Enter your remarks here',
-              ),
-              maxLines: 3, // Adjust the number of lines based on expected input
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back(); // Close the dialog without saving
-            },
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              String remarks = remarksController.text.trim();
-              if (remarks.isNotEmpty) {
-                // Save the remarks for the given index
-                controller.remarks[index] = remarks;
-                controller.remarks.refresh(); // Notify observers of the change
-                print('Remarks for index $index: ${controller.remarks[index]}');
-                //Get.snackbar('Success', 'Remarks saved successfully');
-                Get.back(); // Close the dialog
-              } else {
-                Get.snackbar('Error', 'Please enter some remarks');
-              }
-            },
-            child: Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void Stain(int clothIndex) async {
-    await controller.fetchStain();
-
-    // Ensure selections are initialized for this cloth
-    controller.initializeClothSelectionsstains(clothIndex);
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Stains'),
-        content: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (controller.brands.isEmpty) {
-            return Text('No stains available.');
-          }
-          return SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: controller.brands.length,
-              itemBuilder: (context, index) {
-                final brand = controller.brands[index];
-                final isSelected =
-                    controller.selectedStainIds[clothIndex] == brand['id'];
-
-                return RadioListTile<int>(
-                  value: brand['id'],
-                  groupValue: controller.selectedStainIds[clothIndex],
-                  onChanged: (value) {
-                    // Set the selected stain ID for the specific cloth
-                    controller.selectedStainIds[clothIndex] = value!;
-                    controller.selectedStainIds
-                        .refresh(); // Refresh the observable
-                    Navigator.pop(context);
-                  },
-                  title: Text(brand['name']),
-                );
-              },
-            ),
-          );
-        }),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Print the selected stain ID for the cloth before closing the dialog
-              print(
-                  'Selected Stain for cloth $clothIndex: ${controller.selectedStainIds[clothIndex]}');
-              Get.back();
-            },
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void Defects(int clothIndex) async {
-    await controller.fetchDefects();
-
-    // Ensure selections are initialized for this cloth
-    controller.initializeDefectSelections(clothIndex);
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Defects'),
-        content: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (controller.defects.isEmpty) {
-            return Text('No defects available.');
-          }
-          return SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: controller.defects.length,
-              itemBuilder: (context, index) {
-                final defect = controller.defects[index];
-                final isSelected =
-                    controller.selectedDefectIds[clothIndex] == defect['id'];
-
-                return RadioListTile<int>(
-                  value: defect['id'],
-                  groupValue: controller.selectedDefectIds[clothIndex],
-                  onChanged: (value) {
-                    // Set the selected defect ID for the specific cloth
-                    controller.selectedDefectIds[clothIndex] = value!;
-                    controller.selectedDefectIds
-                        .refresh(); // Refresh the observable
-                    Navigator.pop(context);
-                  },
-                  title: Text(defect['remarks']),
-                );
-              },
-            ),
-          );
-        }),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Print the selected defect ID for the cloth before closing the dialog
-              print(
-                  'Selected Defect for cloth $clothIndex: ${controller.selectedDefectIds[clothIndex]}');
-              Get.back();
-            },
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void colors(int clothIndex) async {
-    await controller.fetchColors();
-
-    // Ensure selections are initialized for this cloth
-    controller.initializeColorSelections(clothIndex);
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Colors'),
-        content: Obx(() {
-          if (controller.isLoading.value) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (controller.colors.isEmpty) {
-            return Text('No colors available.');
-          }
-          return SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: controller.colors.length,
-              itemBuilder: (context, index) {
-                final color = controller.colors[index];
-                final isSelected =
-                    controller.selectedColorIds[clothIndex] == color['id'];
-
-                return RadioListTile<int>(
-                  value: color['id'],
-                  groupValue: controller.selectedColorIds[clothIndex],
-                  onChanged: (value) {
-                    // Set the selected color ID for the specific cloth
-                    controller.selectedColorIds[clothIndex] = value!;
-                    controller.selectedColorIds
-                        .refresh(); // Refresh the observable
-                    Navigator.pop(context);
-                  },
-                  title: Text(color['name']),
-                  secondary: Container(
-                    height: 20,
-                    width: 20,
-                    color: hexToColor(color['code']),
-                  ),
-                );
-              },
-            ),
-          );
-        }),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Print the selected color ID for the cloth before closing the dialog
-              print(
-                  'Selected Color for cloth $clothIndex: ${controller.selectedColorIds[clothIndex]}');
-              Get.back();
-            },
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color hexToColor(String code) {
-    return new Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -417,34 +98,26 @@ class _BookingScreenState extends State<BookingScreen> {
                 itemCount: widget.selectedClothes.length,
                 itemBuilder: (context, index) {
                   final item = widget.selectedClothes[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${item['cloth_name']}",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'Price per item: ₹${currentPrices[index]}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 15),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // Counter buttons
-                              Flexible(
-                                flex: 2,
-                                child: Row(
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    child: Card(
+                      color: Colors.grey.shade100,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("${item['cloth_name']}",
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text("Price per item: ₹${currentPrices[index]}",
+                                style: Theme.of(context).textTheme.bodySmall),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
                                   children: [
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
@@ -455,14 +128,16 @@ class _BookingScreenState extends State<BookingScreen> {
                                         if (counters[index] > 1) {
                                           setState(() {
                                             counters[index]--;
-                                            _updatePrice(index);
+                                            BookingScreenHelpers.updatePrice(
+                                                index,
+                                                controllers,
+                                                currentPrices,
+                                                counters);
                                           });
                                         }
                                       },
-                                      child: const Icon(
-                                        Icons.remove,
-                                        color: Colors.black,
-                                      ),
+                                      child: const Icon(Icons.remove,
+                                          color: Colors.black),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -484,186 +159,266 @@ class _BookingScreenState extends State<BookingScreen> {
                                       onPressed: () {
                                         setState(() {
                                           counters[index]++;
-                                          _updatePrice(index);
+                                          BookingScreenHelpers.updatePrice(
+                                              index,
+                                              controllers,
+                                              currentPrices,
+                                              counters);
                                         });
                                       },
-                                      child: const Icon(
-                                        Icons.add,
-                                        color: Colors.white,
-                                      ),
+                                      child: const Icon(Icons.add,
+                                          color: Colors.white),
                                     ),
                                   ],
                                 ),
-                              ),
-                              // Editable price field
-                              Flexible(
-                                flex: 1,
-                                child: SizedBox(
-                                  width: 80,
+                                SizedBox(
+                                  width: 100,
                                   child: TextField(
                                     controller: controllers[index],
-                                    keyboardType: TextInputType.number,
-                                    textAlign: TextAlign.center,
-                                    decoration: InputDecoration(
-                                      labelText: 'Total',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                        vertical: 5,
-                                        horizontal: 10,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'[\d,.]')),
+                                    ],
+                                    onChanged: (value) =>
+                                        BookingScreenHelpers.onPriceChanged(
+                                            index,
+                                            value,
+                                            currentPrices,
+                                            counters,
+                                            setState),
+                                    decoration: const InputDecoration(
+                                      labelText: "Total",
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            GridView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 5,
+                                childAspectRatio: 1.9,
+                              ),
+                              shrinkWrap: true,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    BookingScreenHelpers.showStainDialog(
+                                        context, index, controller);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        child: Obx(
+                                          () {
+                                            if (index >=
+                                                controller
+                                                    .selectedStainIds.length) {
+                                              return const Text('Stain',
+                                                  style: TextStyle(
+                                                      color: Colors.black));
+                                            }
+
+                                            final selectedStainId = controller
+                                                .selectedStainIds[index];
+                                            final selectedStain =
+                                                controller.brands.firstWhere(
+                                              (brand) =>
+                                                  brand['id'] ==
+                                                  selectedStainId,
+                                              orElse: () => <String, dynamic>{},
+                                            );
+
+                                            return Text(
+                                              selectedStain.containsKey('name')
+                                                  ? '${selectedStain['name']}'
+                                                  : 'Stain',
+                                              style: const TextStyle(
+                                                  color: Colors.black),
+                                              textAlign: TextAlign.center,
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
-                                    onChanged: (value) {
-                                      final newPrice = num.tryParse(value);
-                                      if (newPrice != null && newPrice > 0) {
-                                        setState(() {
-                                          currentPrices[index] = newPrice;
-                                          _updatePrice(index);
-                                        });
-                                      }
-                                    },
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          GridView(
-                            physics: NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 5,
-                              childAspectRatio: 1.9,
-                            ),
-                            shrinkWrap: true,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Stain(index);
-                                },
-                                child: Container(
-                                  child: Center(
+                                InkWell(
+                                  onTap: () {
+                                    BookingScreenHelpers.showColorsDialog(
+                                        context, index, controller);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
                                       child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text('Stain'),
-                                  )),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              // SizedBox(width: 10,),
-                              InkWell(
-                                onTap: () {
-                                  colors(index);
-                                },
-                                child: Container(
-                                  child: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text('Color'),
-                                  )),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              // SizedBox(width: 10,),
-                              InkWell(
-                                onTap: () {
-                                  Defects(index);
-                                },
-                                child: Container(
-                                  child: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text('Defects'),
-                                  )),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              // SizedBox(width: 10,),
-                              InkWell(
-                                onTap: () {
-                                  showRemarksDialog(context, index);
-                                },
-                                child: Container(
-                                  child: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text('Remarks'),
-                                  )),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  final itemIds = widget.selectedClothes
-                                      .map((item) {
-                                        selectedids = item['id'];
-                                        print('Mapped ID: $selectedids');
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        child: Obx(
+                                          () {
+                                            if (controller.colors.isEmpty) {
+                                              return const Text(
+                                                'Color',
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              );
+                                            }
 
-                                        // Check if the ID is a valid integer and not null
-                                        if (selectedids is int) {
-                                          return selectedids;
-                                        } else if (selectedids is String) {
-                                          // If id is a string, attempt to parse it
+                                            final selectedColorId = controller
+                                                .selectedColorIds[index];
+                                            final selectedColor =
+                                                controller.colors.firstWhere(
+                                              (color) =>
+                                                  color['id'] ==
+                                                  selectedColorId,
+                                              orElse: () => <String, dynamic>{},
+                                            );
+
+                                            return Text(
+                                              selectedColor.containsKey('name')
+                                                  ? '${selectedColor['name']}'
+                                                  : 'Color',
+                                              style: const TextStyle(
+                                                  color: Colors.black),
+                                              textAlign: TextAlign.center,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    BookingScreenHelpers.showDefectsDialog(
+                                        context, index, controller);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        child: Obx(
+                                          () {
+                                            if (controller.defects.isEmpty) {
+                                              return const Text(
+                                                'Defects',
+                                                style: TextStyle(
+                                                    color: Colors.black),
+                                              );
+                                            }
+
+                                            final selectedDefectId = controller
+                                                .selectedDefectIds[index];
+
+                                            // Find the selected defect safely
+                                            final selectedDefect =
+                                                controller.defects.firstWhere(
+                                              (defect) =>
+                                                  defect['id'] ==
+                                                  selectedDefectId,
+                                              orElse: () => <String, dynamic>{},
+                                            );
+
+                                            return Text(
+                                              (selectedDefect
+                                                      .containsKey('remarks'))
+                                                  ? "${selectedDefect['remarks']}"
+                                                  : 'Defects',
+                                              style: const TextStyle(
+                                                  color: Colors.black),
+                                              textAlign: TextAlign.center,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    BookingScreenHelpers.showRemarksDialog(
+                                        context, index, controller);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                        child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20.0, vertical: 10),
+                                      child: Text('Remarks'),
+                                    )),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    final itemIds = widget.selectedClothes
+                                        .map((item) {
+                                          selectedids = item['id'];
+                                          print('Mapped ID: $selectedids');
+
                                           final parsedId =
                                               int.tryParse(selectedids);
-                                          if (parsedId != null) {
-                                            return parsedId;
-                                          } else {
+                                          if (parsedId == null) {
                                             print(
                                                 'Invalid ID string: $selectedids');
-                                            return null;
                                           }
-                                        } else {
-                                          print(
-                                              'Unknown ID type: $selectedids');
-                                          return null;
-                                        }
-                                      })
-                                      .where((id) =>
-                                          id != null) // Filter out null values
-                                      .toList()
-                                      .cast<int>();
-                                  showSearchDialog(context, index, controller,
-                                      itemIds[index]);
-                                },
-                                child: Container(
-                                  child: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0, vertical: 10),
-                                    child: Text('Addons'),
-                                  )),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey,
-                                    borderRadius: BorderRadius.circular(12),
+                                          return parsedId;
+                                        })
+                                        .where((id) =>
+                                            id !=
+                                            null) // Filter out null values
+                                        .toList()
+                                        .cast<int>();
+                                    BookingScreenHelpers.showSearchDialog(
+                                        context,
+                                        index,
+                                        controller,
+                                        itemIds[index]);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                        child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20.0, vertical: 10),
+                                      child: Text('Addons'),
+                                    )),
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -713,26 +468,8 @@ class _BookingScreenState extends State<BookingScreen> {
                       .map((price) => price.toDouble())
                       .toList(); // Convert to List<double>
                   final quantities = counters;
-
-                  // print("Item IDs: $itemIds");
-                  // print("Prices: $prices");
-                  // print("Quantities: $quantities");
-                  // print(widget.selectedClothes);
-                  // print(storeId);
-                  // print(widget.userId);
-                  // print('Selected Stain IDs: ${controller.selectedStainIds}');
-                  // print('Selected Defect IDs: ${controller.selectedDefectIds}');
-                  // print('Selected Color IDs: ${controller.selectedColorIds}');
-                  // print('Selected remarks IDs: ${controller.remarks}');
-                  // print('Selected addons IDs: ${controller.addons}');
-                  // print('Selected addons IDs: ${controller.addons}');
-                  // final itemIdss = widget.selectedClothes.map((item) => int.tryParse(item['id'].toString()) ?? 0).toList();
-                  // prepareRequestBody(controller, itemIdss);
-                  // print(itemIdss);
                   print(controller.selectedAddonNames);
                   print(controller.selectedAddonPrices);
-                  //itemIds[index];
-                  //widget.selectedClothes['jj']
 
                   //Call the bookOrder function
                   await controller.bookOrder(
@@ -749,8 +486,6 @@ class _BookingScreenState extends State<BookingScreen> {
                       addonsname: controller.selectedAddonNames,
                       addonsprice: controller.selectedAddonPrices);
                   print(itemIds);
-
-                  //print('Order added for user: ${widget.userId}');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,

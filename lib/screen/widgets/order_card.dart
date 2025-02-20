@@ -11,42 +11,6 @@ import '../../controller/controller.dart';
 import '../../widgets/custom_textbutton.dart';
 import '../../widgets/my_snack_bar.dart';
 
-// Mocking necessary classes
-// class Order {
-//   final String id = "123456";
-//   final Shop shop = Shop();
-//   final Address address = Address();
-//   final double deliveryPrice = 10.5;
-//   final int time = DateTime.now().millisecondsSinceEpoch;
-//   final double totalPrice = 50.0;
-//   final bool isPaid = true;
-// }
-//
-// class Shop {
-//   final String shopImage = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9rZ29GFZZ1IAe08uB4LTFhuh7qomZWUr6QA&s';
-//   final String shopName = 'Shop Name';
-//   final String houseNumber = '123';
-//   final String street = 'Main Street';
-//   final double latitude = 12.9716;
-//   final double longitude = 77.5946;
-// }
-//
-// class Address {
-//   final String houseNumber = '456';
-//   final String street = 'Elm Street';
-//   final String? deliveryInstruction = 'Leave at the front door';
-//   final double latitude = 12.9716;
-//   final double longitude = 77.5946;
-// }
-
-// class Helper {
-//   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-//     // Placeholder for distance calculation logic
-//     return 5.0; // Returning a static distance for now
-//   }
-// }
-
-// Mocking Colorscheme
 final scheme = _ColorScheme();
 
 class _ColorScheme {
@@ -365,7 +329,8 @@ class _OrderCardState extends State<OrderCard> {
             // ),
             //SizedBox(height: !widget.isHistoryView ? 20 : 0),
             (controller.selectedTab.value != 'Deny' &&
-                    controller.selectedTab.value != 'New Orders' && controller.selectedTab.value != 'Picked Up')
+                    controller.selectedTab.value != 'New Orders' &&
+                    controller.selectedTab.value != 'Picked Up')
                 ? CustomTextButton(
                     text: 'CALL',
                     onPressed: () {
@@ -381,7 +346,9 @@ class _OrderCardState extends State<OrderCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                (controller.selectedTab.value != 'Deny' && controller.selectedTab.value != 'Accepted' &&  controller.selectedTab.value != 'Picked Up')
+                (controller.selectedTab.value != 'Deny' &&
+                        controller.selectedTab.value != 'Accepted' &&
+                        controller.selectedTab.value != 'Picked Up')
                     ? CustomTextButton(
                         width: 130,
                         text: 'Deny',
@@ -400,15 +367,14 @@ class _OrderCardState extends State<OrderCard> {
                                     },
                                     child: Text("Cancel"),
                                   ),
-
-
                                   TextButton(
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pop(); // Dismiss the dialog
                                       controller.denyOrder(
                                           widget.order.id, 1.toString());
-                                      openSnackbar(context, 'Order Denied', Colors.black);
+                                      openSnackbar(context, 'Order Denied',
+                                          Colors.black);
                                     },
                                     child: Text("Deny",
                                         style: TextStyle(color: Colors.red)),
@@ -418,30 +384,28 @@ class _OrderCardState extends State<OrderCard> {
                             },
                           );
                         },
-                        isDisabled:
-                            controller.selectedTab.value == 'Picked Up'
-                                ? true
-                                : false,
+                        isDisabled: controller.selectedTab.value == 'Picked Up'
+                            ? true
+                            : false,
                       )
                     : controller.selectedTab.value == 'Accepted'
-                ?CustomTextButton(
-                  width: 130,
-                  text: 'Maps',
-                  onPressed: (){
-                    //Get.to(()=>);
-                    startNavigation(widget.order);
-                  },
-                  isDisabled:  false,
-                )
-                    :
-                const SizedBox(),
-                (controller.selectedTab.value != 'Deny' && controller.selectedTab.value != 'Picked Up')
+                        ? CustomTextButton(
+                            width: 130,
+                            text: 'Maps',
+                            onPressed: () {
+                              //Get.to(()=>);
+                              startNavigation(widget.order);
+                            },
+                            isDisabled: false,
+                          )
+                        : const SizedBox(),
+                (controller.selectedTab.value != 'Deny' &&
+                        controller.selectedTab.value != 'Picked Up')
                     ? CustomTextButton(
                         width: 130,
                         text: controller.selectedTab.value == 'Accepted'
-                        ? 'Add Clothes'
-
-                        :'Accept',
+                            ? 'Add Clothes'
+                            : 'Accept',
                         onPressed: widget.pickUpOrder,
                         isDisabled: controller.selectedTab.value == 'Picked Up'
                             ? true
