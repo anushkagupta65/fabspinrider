@@ -183,13 +183,14 @@ class _BookingScreenState extends State<BookingScreen> {
                                       FilteringTextInputFormatter.allow(
                                           RegExp(r'[\d,.]')),
                                     ],
-                                    onChanged: (value) =>
-                                        BookingScreenHelpers.onPriceChanged(
-                                            index,
-                                            value,
-                                            currentPrices,
-                                            counters,
-                                            setState),
+                                    onChanged: (value) {
+                                      BookingScreenHelpers.onPriceChanged(
+                                          index,
+                                          value,
+                                          currentPrices,
+                                          counters,
+                                          setState);
+                                    },
                                     decoration: const InputDecoration(
                                       labelText: "Total",
                                       border: OutlineInputBorder(),
@@ -218,44 +219,40 @@ class _BookingScreenState extends State<BookingScreen> {
                                         context, index, controller);
                                   },
                                   child: Container(
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        child: Obx(
-                                          () {
-                                            if (index >=
-                                                controller
-                                                    .selectedStainIds.length) {
-                                              return const Text('Stain',
-                                                  style: TextStyle(
-                                                      color: Colors.black));
-                                            }
+                                      child: Obx(
+                                        () {
+                                          if (index >=
+                                              controller
+                                                  .selectedStainIds.length) {
+                                            return const Text('Stain',
+                                                style: TextStyle(
+                                                    color: Colors.black));
+                                          }
 
-                                            final selectedStainId = controller
-                                                .selectedStainIds[index];
-                                            final selectedStain =
-                                                controller.brands.firstWhere(
-                                              (brand) =>
-                                                  brand['id'] ==
-                                                  selectedStainId,
-                                              orElse: () => <String, dynamic>{},
-                                            );
+                                          final selectedStainId = controller
+                                              .selectedStainIds[index];
+                                          final selectedStain =
+                                              controller.brands.firstWhere(
+                                            (brand) =>
+                                                brand['id'] == selectedStainId,
+                                            orElse: () => <String, dynamic>{},
+                                          );
 
-                                            return Text(
-                                              selectedStain.containsKey('name')
-                                                  ? '${selectedStain['name']}'
-                                                  : 'Stain',
-                                              style: const TextStyle(
-                                                  color: Colors.black),
-                                              textAlign: TextAlign.center,
-                                            );
-                                          },
-                                        ),
+                                          return Text(
+                                            selectedStain.containsKey('name')
+                                                ? '${selectedStain['name']}'
+                                                : 'Stain',
+                                            style: const TextStyle(
+                                                color: Colors.black),
+                                            textAlign: TextAlign.center,
+                                          );
+                                        },
                                       ),
                                     ),
                                   ),
@@ -266,44 +263,49 @@ class _BookingScreenState extends State<BookingScreen> {
                                         context, index, controller);
                                   },
                                   child: Container(
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        child: Obx(
-                                          () {
-                                            if (controller.colors.isEmpty) {
-                                              return const Text(
-                                                'Color',
+                                      child: Obx(
+                                        () {
+                                          if (controller.colors.isEmpty ||
+                                              index >=
+                                                  controller.colors.length) {
+                                            return const Text('Color',
                                                 style: TextStyle(
-                                                    color: Colors.black),
-                                              );
-                                            }
+                                                    color: Colors.black));
+                                          }
 
-                                            final selectedColorId = controller
-                                                .selectedColorIds[index];
-                                            final selectedColor =
-                                                controller.colors.firstWhere(
-                                              (color) =>
-                                                  color['id'] ==
-                                                  selectedColorId,
-                                              orElse: () => <String, dynamic>{},
-                                            );
+                                          if (index >=
+                                              controller
+                                                  .selectedColorIds.length) {
+                                            return const Text('Color',
+                                                style: TextStyle(
+                                                    color: Colors.black));
+                                          }
 
-                                            return Text(
-                                              selectedColor.containsKey('name')
-                                                  ? '${selectedColor['name']}'
-                                                  : 'Color',
-                                              style: const TextStyle(
-                                                  color: Colors.black),
-                                              textAlign: TextAlign.center,
-                                            );
-                                          },
-                                        ),
+                                          final selectedColorId = controller
+                                              .selectedColorIds[index];
+
+                                          final selectedColor =
+                                              controller.colors.firstWhere(
+                                            (color) =>
+                                                color['id'] == selectedColorId,
+                                            orElse: () => <String, dynamic>{},
+                                          );
+
+                                          return Text(
+                                            selectedColor.containsKey('name')
+                                                ? '${selectedColor['name']}'
+                                                : 'Color',
+                                            style: const TextStyle(
+                                                color: Colors.black),
+                                            textAlign: TextAlign.center,
+                                          );
+                                        },
                                       ),
                                     ),
                                   ),
@@ -314,47 +316,51 @@ class _BookingScreenState extends State<BookingScreen> {
                                         context, index, controller);
                                   },
                                   child: Container(
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        child: Obx(
-                                          () {
-                                            if (controller.defects.isEmpty) {
-                                              return const Text(
-                                                'Defects',
+                                      child: Obx(
+                                        () {
+                                          if (controller.defects.isEmpty ||
+                                              index >=
+                                                  controller.defects.length) {
+                                            return const Text('Defects',
                                                 style: TextStyle(
-                                                    color: Colors.black),
-                                              );
-                                            }
+                                                    color: Colors.black));
+                                          }
 
-                                            final selectedDefectId = controller
-                                                .selectedDefectIds[index];
+                                          if (index >=
+                                              controller
+                                                  .selectedDefectIds.length) {
+                                            return const Text('Defects',
+                                                style: TextStyle(
+                                                    color: Colors.black));
+                                          }
 
-                                            // Find the selected defect safely
-                                            final selectedDefect =
-                                                controller.defects.firstWhere(
-                                              (defect) =>
-                                                  defect['id'] ==
-                                                  selectedDefectId,
-                                              orElse: () => <String, dynamic>{},
-                                            );
+                                          final selectedDefectId = controller
+                                              .selectedDefectIds[index];
 
-                                            return Text(
-                                              (selectedDefect
-                                                      .containsKey('remarks'))
-                                                  ? "${selectedDefect['remarks']}"
-                                                  : 'Defects',
-                                              style: const TextStyle(
-                                                  color: Colors.black),
-                                              textAlign: TextAlign.center,
-                                            );
-                                          },
-                                        ),
+                                          final selectedDefect =
+                                              controller.defects.firstWhere(
+                                            (defect) =>
+                                                defect['id'] ==
+                                                selectedDefectId,
+                                            orElse: () => <String, dynamic>{},
+                                          );
+
+                                          return Text(
+                                            selectedDefect
+                                                    .containsKey('remarks')
+                                                ? "${selectedDefect['remarks']}"
+                                                : 'Defects',
+                                            style: const TextStyle(
+                                                color: Colors.black),
+                                            textAlign: TextAlign.center,
+                                          );
+                                        },
                                       ),
                                     ),
                                   ),
@@ -365,59 +371,88 @@ class _BookingScreenState extends State<BookingScreen> {
                                         context, index, controller);
                                   },
                                   child: Container(
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Center(
-                                        child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 10),
                                       child: Text('Remarks'),
-                                    )),
+                                    ),
                                   ),
                                 ),
                                 InkWell(
                                   onTap: () {
-                                    final itemIds = widget.selectedClothes
-                                        .map((item) {
-                                          selectedids = item['id'];
-                                          print('Mapped ID: $selectedids');
-
-                                          final parsedId =
-                                              int.tryParse(selectedids);
-                                          if (parsedId == null) {
-                                            print(
-                                                'Invalid ID string: $selectedids');
-                                          }
-                                          return parsedId;
-                                        })
-                                        .where((id) =>
-                                            id !=
-                                            null) // Filter out null values
-                                        .toList()
-                                        .cast<int>();
                                     BookingScreenHelpers.showSearchDialog(
                                         context,
                                         index,
                                         controller,
-                                        itemIds[index]);
+                                        int.tryParse(
+                                                widget.selectedClothes[index]
+                                                    ['id']) ??
+                                            0);
                                   },
                                   child: Container(
+                                    padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Center(
-                                        child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 10),
                                       child: Text('Addons'),
-                                    )),
+                                    ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
+                            Obx(() {
+                              if (index >= controller.remarks.length ||
+                                  controller.remarks[index].isEmpty) {
+                                return const SizedBox();
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 8,
+                                  right: 8,
+                                  top: 10,
+                                ),
+                                child: Text(
+                                  "Remarks: ${controller.remarks[index]}",
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 14),
+                                ),
+                              );
+                            }),
+                            Obx(() {
+                              final itemId = int.tryParse(
+                                      widget.selectedClothes[index]['id']) ??
+                                  0;
+
+                              if (!controller.selectedAddonNames
+                                      .containsKey(itemId) ||
+                                  controller
+                                      .selectedAddonNames[itemId]!.isEmpty) {
+                                return const SizedBox();
+                              }
+
+                              final selectedAddons = controller
+                                  .selectedAddonNames[itemId]!
+                                  .join(', ');
+
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 8,
+                                  right: 8,
+                                  top: 10,
+                                ),
+                                child: Text(
+                                  "Addons: $selectedAddons",
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 14),
+                                ),
+                              );
+                            }),
                           ],
                         ),
                       ),
@@ -425,7 +460,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () async {
                   SharedPreferences prefs =
@@ -464,7 +499,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
                   print('Final Item IDs: $itemIds');
 
-                  // Calculate total price per item (price * quantity)
                   final prices = List.generate(currentPrices.length, (index) {
                     return (currentPrices[index] * counters[index]).toDouble();
                   });
@@ -476,13 +510,12 @@ class _BookingScreenState extends State<BookingScreen> {
                       "Selected Add-on Prices: ${controller.selectedAddonPrices}");
                   print("Final Prices (Total per item): $prices");
 
-                  // Call the bookOrder function with correct total prices
                   await controller.bookOrder(
                     context: context,
                     storeId: storeId,
                     customerId: widget.userId,
                     itemIds: itemIds,
-                    prices: prices, // Sending total prices (price * quantity)
+                    prices: prices,
                     quantities: quantities,
                     selcolor: controller.selectedColorIds,
                     selpattern: controller.selectedDefectIds,

@@ -123,7 +123,7 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
                                           padding: const EdgeInsets.symmetric(
                                               vertical: 2),
                                           child: Text(
-                                              "${i + 1}: ${deserializedList[i]}",
+                                              "${i + 1} ${deserializedList[i]}",
                                               style: const TextStyle(
                                                   fontSize: 14,
                                                   color: Colors.black54)),
@@ -132,7 +132,7 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
                                     ),
                                     if (bookingItem['brandname'] != null)
                                       _infoText(
-                                          "Color", bookingItem['brandname']),
+                                          "Stain", bookingItem['brandname']),
                                     if (bookingItem['colorname'] != null)
                                       _infoText(
                                           "Color", bookingItem['colorname']),
@@ -163,11 +163,13 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
                                       ),
                                     const SizedBox(height: 8),
                                     Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          "Quantity: ${bookingItem['quantity']} - Pcs: ${deserializedList.length}",
+                                          "Quantity: ${bookingItem['quantity']} \nPieces: ${deserializedList.length}",
                                           style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500),
@@ -219,7 +221,7 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
           Text("Customer Name: $customerName"),
           Text("Customer Address: $customerAddress"),
           const Divider(),
-          _summaryRow("Quantity", "${bookingList.length}"),
+          _summaryRow("Quantity", "${_calculateTotalQuantity()}"),
           _summaryRow("Pieces", "$totalGarments"),
           _summaryRow("Total", "₹${bookingList[0]['order_total_before_tax']}"),
           _summaryRow("Addons Total", "₹$totalAddons"),
@@ -231,6 +233,11 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
         ],
       ),
     );
+  }
+
+  int _calculateTotalQuantity() {
+    return bookingList.fold(
+        0, (sum, item) => sum + ((item['quantity'] ?? 1) as num).toInt());
   }
 
   Widget _summaryRow(String title, String value) {
