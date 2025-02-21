@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:fabspinrider/booking/controller/booking_controller.dart';
 import 'package:fabspinrider/screen/widgets/booking_screen_helpers.dart';
 import 'package:fabspinrider/widgets/image_picker_cropper.dart';
@@ -58,12 +57,6 @@ class _BookingScreenState extends State<BookingScreen> {
     return 0;
   }
 
-  void _updatePrice(int index) {
-    final price = currentPrices[index];
-    final totalAmount = counters[index] * price;
-    controllers[index].text = totalAmount.toStringAsFixed(2);
-  }
-
   void prepareRequestBody(BookingController controller, List<int> itemIds) {
     final Map<String, dynamic> requestBody = {
       "addonname": {},
@@ -85,10 +78,9 @@ class _BookingScreenState extends State<BookingScreen> {
   void setImageFile(int index, List<String> profilePicturePaths) {
     setState(() {
       if (imagePaths?[index] == null) {
-        imagePaths?[index] = profilePicturePaths; // Assign new list if empty
+        imagePaths?[index] = profilePicturePaths;
       } else {
-        imagePaths?[index]
-            ?.addAll(profilePicturePaths); // Append to existing list
+        imagePaths?[index]?.addAll(profilePicturePaths);
       }
     });
   }
@@ -96,12 +88,12 @@ class _BookingScreenState extends State<BookingScreen> {
   void deleteImageFile(int index, {String? imagePathToRemove}) {
     setState(() {
       if (imagePathToRemove != null) {
-        imagePaths?[index]?.remove(imagePathToRemove); // Remove specific image
+        imagePaths?[index]?.remove(imagePathToRemove);
         if (imagePaths?[index]?.isEmpty ?? true) {
-          imagePaths?.remove(index); // If no images remain, remove entry
+          imagePaths?.remove(index);
         }
       } else {
-        imagePaths?.remove(index); // Remove all images for the item
+        imagePaths?.remove(index);
       }
     });
   }
@@ -163,9 +155,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                           showDelete:
                                               imagePaths?[index]?.isNotEmpty ??
                                                   false,
-                                          deleteImage: () {
-                                            // Optionally pass a specific image to delete
-                                          },
+                                          deleteImage: () {},
                                         );
                                       },
                                     );
@@ -509,8 +499,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                           child: ListView.builder(
                                             scrollDirection: Axis.horizontal,
                                             shrinkWrap: true,
-                                            // physics:
-                                            //     const NeverScrollableScrollPhysics(),
                                             itemCount:
                                                 imagePaths?[index]?.length ?? 0,
                                             itemBuilder: (context, imgIndex) {
@@ -626,15 +614,14 @@ class _BookingScreenState extends State<BookingScreen> {
                   final storeId = prefs.getInt('StoreId');
 
                   if (storeId == null) {
-                    print("Store ID is null");
+                    debugPrint("Store ID is null");
                     return;
                   }
 
-                  // Extract item IDs, ensuring they are valid integers
                   final itemIds = widget.selectedClothes
                       .map((item) {
                         final id = item['id'];
-                        print('Mapped ID: $id');
+                        debugPrint('Mapped ID: $id');
 
                         if (id is int) {
                           return id;
@@ -643,19 +630,19 @@ class _BookingScreenState extends State<BookingScreen> {
                           if (parsedId != null) {
                             return parsedId;
                           } else {
-                            print('Invalid ID string: $id');
+                            debugPrint('Invalid ID string: $id');
                             return null;
                           }
                         } else {
-                          print('Unknown ID type: $id');
+                          debugPrint('Unknown ID type: $id');
                           return null;
                         }
                       })
-                      .where((id) => id != null) // Filter out null values
+                      .where((id) => id != null)
                       .toList()
                       .cast<int>();
 
-                  print('Final Item IDs: $itemIds');
+                  debugPrint('Final Item IDs: $itemIds');
 
                   final prices = List.generate(currentPrices.length, (index) {
                     return (currentPrices[index] * counters[index]).toDouble();
@@ -663,10 +650,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
                   final quantities = counters;
 
-                  print("Selected Add-ons: ${controller.selectedAddonNames}");
-                  print(
+                  debugPrint(
+                      "Selected Add-ons: ${controller.selectedAddonNames}");
+                  debugPrint(
                       "Selected Add-on Prices: ${controller.selectedAddonPrices}");
-                  print("Final Prices (Total per item): $prices");
+                  debugPrint("Final Prices (Total per item): $prices");
 
                   await controller.bookOrder(
                     context: context,
@@ -683,7 +671,8 @@ class _BookingScreenState extends State<BookingScreen> {
                     addonsprice: controller.selectedAddonPrices,
                   );
 
-                  print("Order placed successfully with item prices: $prices");
+                  debugPrint(
+                      "Order placed successfully with item prices: $prices");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,

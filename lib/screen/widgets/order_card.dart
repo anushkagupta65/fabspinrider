@@ -1,12 +1,9 @@
 import 'package:fabspinrider/map/googlemaps.dart';
 import 'package:fabspinrider/model/order.dart';
-import 'package:fabspinrider/screen/finish_delivery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../controller/controller.dart';
 import '../../widgets/custom_textbutton.dart';
 import '../../widgets/my_snack_bar.dart';
@@ -18,13 +15,12 @@ class _ColorScheme {
 }
 
 class OrderCard extends StatefulWidget {
-  late PickupDrop order;
-  late VoidCallback pickUpOrder = () {};
-  bool isHistoryView = false;
+  final PickupDrop order;
+  final VoidCallback pickUpOrder;
+  final bool isHistoryView = false;
 
-  OrderCard({
+  const OrderCard({
     super.key,
-    // this.isHistoryView = false,
     required this.order,
     required this.pickUpOrder,
   });
@@ -38,9 +34,8 @@ class _OrderCardState extends State<OrderCard> {
   RiderController controller = Get.put(RiderController());
 
   Future<void> call() async {
-    print('customer mobile ${widget.order.customerMobile}');
+    debugPrint('customer mobile ${widget.order.customerMobile}');
     final Uri telUri = Uri(scheme: 'tel', path: widget.order.customerMobile);
-    // Request permission
     final status = await Permission.phone.request();
 
     if (status.isGranted) {
@@ -51,21 +46,15 @@ class _OrderCardState extends State<OrderCard> {
           throw 'Could not launch dialer';
         }
       } catch (e) {
-        print('Error: $e');
+        debugPrint('Error: $e');
       }
     } else {
-      print('Phone permission denied');
+      debugPrint('Phone permission denied');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // double distance = Helper().calculateDistance(
-    //   widget.order.shop.latitude,
-    //   widget.order.shop.longitude,
-    //   widget.order.address.latitude,
-    //   widget.order.address.longitude,
-    // );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
       child: Container(
@@ -100,7 +89,7 @@ class _OrderCardState extends State<OrderCard> {
                   child: Text(
                     '#${widget.order.id}',
                     textAlign: TextAlign.end,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.cyan,
                       fontWeight: FontWeight.w600,
                     ),
@@ -109,21 +98,19 @@ class _OrderCardState extends State<OrderCard> {
               ],
             ),
             const SizedBox(height: 20),
-
             Text(
               'Order ${widget.order.type}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 color: Colors.cyan,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 20),
-
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage(
+                  backgroundImage: const NetworkImage(
                       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9rZ29GFZZ1IAe08uB4LTFhuh7qomZWUr6QA&s' //widget.order.shop.shopImage,
                       ),
                   backgroundColor: scheme.primary,
@@ -132,7 +119,7 @@ class _OrderCardState extends State<OrderCard> {
                 Expanded(
                   child: Text(
                     widget.order.customerName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
@@ -141,7 +128,6 @@ class _OrderCardState extends State<OrderCard> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -153,7 +139,7 @@ class _OrderCardState extends State<OrderCard> {
                     color: scheme.primary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.location_city_outlined,
                       color: Colors.cyan,
@@ -175,7 +161,7 @@ class _OrderCardState extends State<OrderCard> {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        '${widget.order.pickupAddress}',
+                        widget.order.pickupAddress,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -197,7 +183,7 @@ class _OrderCardState extends State<OrderCard> {
                     color: scheme.primary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.home_work_outlined,
                       color: Colors.cyan,
@@ -219,7 +205,7 @@ class _OrderCardState extends State<OrderCard> {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        '${widget.order.deliverAddress}',
+                        widget.order.deliverAddress,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -233,22 +219,6 @@ class _OrderCardState extends State<OrderCard> {
             const SizedBox(height: 20),
             Row(
               children: [
-                // Row(
-                //   children: [
-                //     Icon(
-                //       Icons.attach_money_outlined,
-                //       color: Colors.grey[600],
-                //     ),
-                //     Text(
-                //       '${widget.order.deliveryPrice}',
-                //       style: TextStyle(
-                //         color: Colors.grey[700],
-                //         fontSize: 15,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                //const SizedBox(width: 20),
                 Row(
                   children: [
                     Icon(
@@ -265,69 +235,9 @@ class _OrderCardState extends State<OrderCard> {
                     ),
                   ],
                 ),
-                // const SizedBox(width: 20),
-                // Row(
-                //   children: [
-                //     Icon(
-                //       Icons.delivery_dining_outlined,
-                //       color: Colors.grey[600],
-                //     ),
-                //     const SizedBox(width: 5),
-                //     Text(
-                //       '${5} km',
-                //       style: TextStyle(
-                //         color: Colors.grey[700],
-                //         fontSize: 15,
-                //       ),
-                //     ),
-                //   ],
-                // )
               ],
             ),
-            // const SizedBox(height: 20),
-            // Row(
-            //   children: [
-            //     Text(
-            //       'PAYMENT METHOD: ',
-            //       style: TextStyle(
-            //         color: Colors.grey[500],
-            //         fontWeight: FontWeight.w600,
-            //       ),
-            //     ),
-            //     const SizedBox(width: 10),
-            //     Text(
-            //       widget.order.isPaid
-            //           ? '\$ ${widget.order.totalPrice} (paid)'
-            //           : '\$ ${widget.order.totalPrice} (Not paid)',
-            //       style: const TextStyle(
-            //         fontSize: 15,
-            //       ),
-            //     ),
-            //   ],
-            // ),
             const SizedBox(height: 20),
-            // Text(
-            //   'COMMENT',
-            //   style: TextStyle(
-            //     color: Colors.grey[500],
-            //     fontWeight: FontWeight.w600,
-            //   ),
-            // ),
-            // const SizedBox(height: 15),
-            // GestureDetector(
-            //   onTap: () {
-            //     setState(() {
-            //       isCommentSeeMore = !isCommentSeeMore;
-            //     });
-            //   },
-            //   child: Text(
-            //     widget.order.address.deliveryInstruction ?? '',
-            //     overflow: isCommentSeeMore
-            //         ? TextOverflow.visible
-            //         : TextOverflow.ellipsis,
-            //   ),
-            // ),
-            //SizedBox(height: !widget.isHistoryView ? 20 : 0),
             (controller.selectedTab.value != 'Deny' &&
                     controller.selectedTab.value != 'New Orders' &&
                     controller.selectedTab.value != 'Picked Up')
@@ -335,12 +245,11 @@ class _OrderCardState extends State<OrderCard> {
                     text: 'CALL',
                     onPressed: () {
                       call();
-                      //Get.to(() => FinishDeliverScreen());
                     },
                     isDisabled: false,
                   )
                 : const SizedBox(),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Row(
@@ -357,26 +266,25 @@ class _OrderCardState extends State<OrderCard> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
-                                title: Text("Confirm Denial"),
-                                content: Text("Are you sure you want to deny?"),
+                                title: const Text("Confirm Denial"),
+                                content: const Text(
+                                    "Are you sure you want to deny?"),
                                 actions: [
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(); // Dismiss the dialog
+                                      Navigator.of(context).pop();
                                     },
-                                    child: Text("Cancel"),
+                                    child: const Text("Cancel"),
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(); // Dismiss the dialog
+                                      Navigator.of(context).pop();
                                       controller.denyOrder(
                                           widget.order.id, 1.toString());
                                       openSnackbar(context, 'Order Denied',
                                           Colors.black);
                                     },
-                                    child: Text("Deny",
+                                    child: const Text("Deny",
                                         style: TextStyle(color: Colors.red)),
                                   ),
                                 ],
@@ -393,7 +301,6 @@ class _OrderCardState extends State<OrderCard> {
                             width: 130,
                             text: 'Maps',
                             onPressed: () {
-                              //Get.to(()=>);
                               startNavigation(widget.order);
                             },
                             isDisabled: false,

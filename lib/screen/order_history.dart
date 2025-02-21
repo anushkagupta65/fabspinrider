@@ -1,9 +1,7 @@
 import 'package:fabspinrider/screen/widgets/order_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controller/controller.dart';
-import '../model/order.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   static const String routeName = '/order-history-screen';
@@ -20,7 +18,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   void initState() {
     super.initState();
 
-    // Delay the updateSelectedTab call until after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.updateSelectedTab('Picked Up');
     });
@@ -38,28 +35,29 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Obx(() {
-        final pickedUpOrders = controller.filteredOrders;
+      body: Obx(
+        () {
+          final pickedUpOrders = controller.filteredOrders;
 
-        return pickedUpOrders.isEmpty
-            ? Center(
-          child: Text(
-            'No orders found',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-        )
-            : ListView.builder(
-          itemCount: pickedUpOrders.length,
-          itemBuilder: (context, index) {
-            var order = pickedUpOrders[index];
-            return OrderCard(
-              order: order,
-              pickUpOrder: () {},
-            );
-          },
-        );
-      }),
+          return pickedUpOrders.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No orders found',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: pickedUpOrders.length,
+                  itemBuilder: (context, index) {
+                    var order = pickedUpOrders[index];
+                    return OrderCard(
+                      order: order,
+                      pickUpOrder: () {},
+                    );
+                  },
+                );
+        },
+      ),
     );
   }
 }
-

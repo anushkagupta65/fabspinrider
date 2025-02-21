@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String labelText;
-  bool noIcon;
-  bool isDisabled;
-  String? initialValue;
-  Function(String)? onChanged;
-  String? errorText;
-  bool isNumPad;
+  final bool noIcon;
+  final bool isDisabled;
+  final String? initialValue;
+  final Function(String)? onChanged;
+  final String? errorText;
+  final bool isNumPad;
 
-  CustomTextField({
-    Key? key,
+  const CustomTextField({
+    super.key,
     required this.controller,
     required this.labelText,
     this.noIcon = true,
@@ -20,14 +20,14 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.errorText = '',
     this.isNumPad = false,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  FocusNode _focus = FocusNode();
+  final FocusNode _focus = FocusNode();
   bool isNotFocus = true;
   bool isObscure = false;
 
