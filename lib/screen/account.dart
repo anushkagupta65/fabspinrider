@@ -1,10 +1,10 @@
-import 'dart:io';
+// import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:image_picker/image_picker.dart';
+// import 'package:image_picker/image_picker.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import '../controller/controller.dart';
 
 class MyProfile extends StatefulWidget {
@@ -17,45 +17,42 @@ class MyProfile extends StatefulWidget {
 class _MyProfileState extends State<MyProfile> {
   final RiderController profileController = Get.put(RiderController());
 
+  // File? _image;  // Variable to store the selected image
 
-  File? _image;  // Variable to store the selected image
+  // final ImagePicker _picker = ImagePicker();  // Image picker instance
 
-  final ImagePicker _picker = ImagePicker();  // Image picker instance
+  // // Function to request permissions
 
-  // Function to request permissions
+  // Future<void> _requestPermission() async {
+  //   var status = await Permission.photos.request();
 
-  Future<void> _requestPermission() async {
-    var status = await Permission.photos.request();
+  //   if (status.isGranted) {
+  //     print('Permission granted');
+  //   } else if (status.isDenied) {
+  //     print('Permission denied');
+  //   } else if (status.isPermanentlyDenied) {
+  //     print('Permission permanently denied');
+  //     openAppSettings();  // Opens app settings if the permission is permanently denied
+  //   }
+  // }
 
-    if (status.isGranted) {
-      print('Permission granted');
-    } else if (status.isDenied) {
-      print('Permission denied');
-    } else if (status.isPermanentlyDenied) {
-      print('Permission permanently denied');
-      openAppSettings();  // Opens app settings if the permission is permanently denied
-    }
-  }
+  // // Image picking function
+  // Future<void> _pickImage() async {
+  //   // Request permission to manage external storage
+  //   if (await Permission.manageExternalStorage.isGranted) {
+  //     // Proceed with image picking if permission is granted
+  //     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
-  // Image picking function
-  Future<void> _pickImage() async {
-    // Request permission to manage external storage
-    if (await Permission.manageExternalStorage.isGranted) {
-      // Proceed with image picking if permission is granted
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-      if (image != null) {
-        setState(() {
-          _image = File(image.path); // Set the picked image
-        });
-      }
-    } else {
-      // Request permission to manage external storage
-      Permission.manageExternalStorage.request();
-    }
-  }
-
-
+  //     if (image != null) {
+  //       setState(() {
+  //         _image = File(image.path); // Set the picked image
+  //       });
+  //     }
+  //   } else {
+  //     // Request permission to manage external storage
+  //     Permission.manageExternalStorage.request();
+  //   }
+  // }
 
   @override
   void initState() {
@@ -71,13 +68,12 @@ class _MyProfileState extends State<MyProfile> {
         backgroundColor: Colors.black,
         title: Center(
             child: Text(
-              'Account',
-              style: TextStyle(color: Colors.white),
-            )),
+          'Account',
+          style: TextStyle(color: Colors.white),
+        )),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
-
       body: Container(
         child: Column(
           children: [
@@ -118,19 +114,21 @@ class _MyProfileState extends State<MyProfile> {
             //     ),
             //   ],
             // ),
-            Expanded(
+            const Expanded(
               child: CircleAvatar(
                 radius: 70,
                 backgroundColor: Colors.black,
                 child: ClipOval(
-                  child: _image != null
-                      ? Image.file(
-                    _image!,
-                    fit: BoxFit.cover,
-                    width: 140,
-                    height: 140,
-                  )
-                      : Icon(
+                  child:
+                      // _image != null
+                      //     ? Image.file(
+                      //   _image!,
+                      //   fit: BoxFit.cover,
+                      //   width: 140,
+                      //   height: 140,
+                      // )
+                      //     :
+                      Icon(
                     Icons.person, // Placeholder icon
                     size: 140,
                     color: Colors.grey,
@@ -150,17 +148,17 @@ class _MyProfileState extends State<MyProfile> {
                       children: [
                         SizedBox(width: 8),
                         Icon(Ionicons.person_outline),
-
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Obx(()=>
-                                Text(
-                                  profileController.name.value,
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                                ),
-                              ),
-                            )),
+                          padding: const EdgeInsets.all(15.0),
+                          child: Obx(
+                            () => Text(
+                              profileController.name.value,
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w400),
+                            ),
+                          ),
+                        )),
                       ],
                     ),
                   ),
@@ -173,15 +171,17 @@ class _MyProfileState extends State<MyProfile> {
                       children: [
                         SizedBox(width: 8),
                         Icon(Ionicons.phone_portrait_outline),
-
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Obx(()=> Text(profileController.mobile.value, style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))),
-                            )),
+                          padding: const EdgeInsets.all(15),
+                          child: Obx(() => Text(profileController.mobile.value,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400, fontSize: 12))),
+                        )),
                       ],
                     ),
-                  ),SizedBox(height: 15),
+                  ),
+                  SizedBox(height: 15),
                   Container(
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
@@ -190,12 +190,14 @@ class _MyProfileState extends State<MyProfile> {
                       children: [
                         SizedBox(width: 8),
                         Icon(Ionicons.storefront_outline),
-
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Obx(()=> Text(profileController.storedAddress.value, style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))),
-                            )),
+                          padding: const EdgeInsets.all(15),
+                          child: Obx(() => Text(
+                              profileController.storedAddress.value,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400, fontSize: 12))),
+                        )),
                       ],
                     ),
                   ),
@@ -208,17 +210,17 @@ class _MyProfileState extends State<MyProfile> {
                       children: [
                         SizedBox(width: 8),
                         Icon(Ionicons.mail_open_outline),
-
                         Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Obx(()=>
-                                 Text(profileController.email.value,
-
-                                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-                                ),
-                              ),
-                            )),
+                          padding: const EdgeInsets.all(15.0),
+                          child: Obx(
+                            () => Text(
+                              profileController.email.value,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400, fontSize: 12),
+                            ),
+                          ),
+                        )),
                         SizedBox(width: 15),
                       ],
                     ),
@@ -261,9 +263,9 @@ class _MyProfileState extends State<MyProfile> {
                           color: Colors.black,
                           child: Center(
                               child: Text(
-                                'Back',
-                                style: TextStyle(color: Colors.white),
-                              )),
+                            'Back',
+                            style: TextStyle(color: Colors.white),
+                          )),
                         ),
                       ),
                     ),

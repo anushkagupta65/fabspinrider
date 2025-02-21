@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:fabspinrider/booking/controller/booking_controller.dart';
 import 'package:fabspinrider/screen/widgets/booking_screen_helpers.dart';
+import 'package:fabspinrider/widgets/image_picker_cropper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -22,6 +25,7 @@ class _BookingScreenState extends State<BookingScreen> {
   late List<num> currentPrices;
   BookingController controller = Get.put(BookingController());
   String selectedids = '0';
+  Map<int, List<String>>? imagePaths = {};
 
   @override
   void initState() {
@@ -75,7 +79,31 @@ class _BookingScreenState extends State<BookingScreen> {
       }
     }
 
-    print("Request Body: $requestBody");
+    debugPrint("Request Body: $requestBody");
+  }
+
+  void setImageFile(int index, List<String> profilePicturePaths) {
+    setState(() {
+      if (imagePaths?[index] == null) {
+        imagePaths?[index] = profilePicturePaths; // Assign new list if empty
+      } else {
+        imagePaths?[index]
+            ?.addAll(profilePicturePaths); // Append to existing list
+      }
+    });
+  }
+
+  void deleteImageFile(int index, {String? imagePathToRemove}) {
+    setState(() {
+      if (imagePathToRemove != null) {
+        imagePaths?[index]?.remove(imagePathToRemove); // Remove specific image
+        if (imagePaths?[index]?.isEmpty ?? true) {
+          imagePaths?.remove(index); // If no images remain, remove entry
+        }
+      } else {
+        imagePaths?.remove(index); // Remove all images for the item
+      }
+    });
   }
 
   @override
@@ -108,13 +136,61 @@ class _BookingScreenState extends State<BookingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("${item['cloth_name']}",
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text(
-                                "Price per item: ₹${currentPrices[index].floor()}",
-                                style: Theme.of(context).textTheme.bodySmall),
-                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    "${item['cloth_name']}",
+                                    style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return ImagePickerCropper(
+                                          removeDeleteOption:
+                                              imagePaths?[index] == null,
+                                          imagePath: (selectedImagePaths) {
+                                            setImageFile(
+                                                index, selectedImagePaths);
+                                          },
+                                          showDelete:
+                                              imagePaths?[index]?.isNotEmpty ??
+                                                  false,
+                                          deleteImage: () {
+                                            // Optionally pass a specific image to delete
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.camera_alt_outlined,
+                                    size: 24,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                    "Price per item: ₹${currentPrices[index].floor()}",
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium),
+                                Text("Take a picture",
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium)
+                              ],
+                            ),
+                            const SizedBox(height: 22),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -405,6 +481,88 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                               ],
                             ),
+                            imagePaths?[index] == null
+                                ? const SizedBox()
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 8,
+                                          right: 8,
+                                          top: 10,
+                                        ),
+                                        child: Text(
+                                          "Uploaded Images:",
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 14),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8, horizontal: 8),
+                                        child: SizedBox(
+                                          height: 76,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            shrinkWrap: true,
+                                            // physics:
+                                            //     const NeverScrollableScrollPhysics(),
+                                            itemCount:
+                                                imagePaths?[index]?.length ?? 0,
+                                            itemBuilder: (context, imgIndex) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 6),
+                                                child: Stack(
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                      child: Image.file(
+                                                        File(imagePaths![
+                                                            index]![imgIndex]),
+                                                        fit: BoxFit.cover,
+                                                        width: 56,
+                                                      ),
+                                                    ),
+                                                    Positioned(
+                                                      top: 5,
+                                                      right: 5,
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          deleteImageFile(index,
+                                                              imagePathToRemove:
+                                                                  imagePaths![
+                                                                          index]![
+                                                                      imgIndex]);
+                                                        },
+                                                        child:
+                                                            const CircleAvatar(
+                                                          radius: 12,
+                                                          backgroundColor:
+                                                              Colors.red,
+                                                          child: Icon(
+                                                              Icons.close,
+                                                              size: 16,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                             Obx(() {
                               if (index >= controller.remarks.length ||
                                   controller.remarks[index].isEmpty) {
