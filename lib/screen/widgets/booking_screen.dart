@@ -24,7 +24,6 @@ class _BookingScreenState extends State<BookingScreen> {
   late List<num> currentPrices;
   BookingController controller = Get.put(BookingController());
   String selectedids = '0';
-  Map<int, List<String>>? imagePaths = {};
 
   @override
   void initState() {
@@ -61,42 +60,51 @@ class _BookingScreenState extends State<BookingScreen> {
     final Map<String, dynamic> requestBody = {
       "addonname": {},
       "addonprice": {},
+      "images": {}, // 🔹 Added images key
     };
 
     for (final clothId in itemIds) {
+      // 🔹 Add selected Add-ons
       if (controller.selectedAddonNames.containsKey(clothId)) {
         requestBody["addonname"][clothId.toString()] =
             controller.selectedAddonNames[clothId];
         requestBody["addonprice"][clothId.toString()] =
             controller.selectedAddonPrices[clothId];
       }
+
+      // 🔹 Add Image Paths
+      if (controller.imagePaths.containsKey(clothId) &&
+          controller.imagePaths[clothId]!.isNotEmpty) {
+        requestBody["images"][clothId.toString()] =
+            controller.imagePaths[clothId];
+      }
     }
 
     debugPrint("Request Body: $requestBody");
   }
 
-  void setImageFile(int index, List<String> profilePicturePaths) {
-    setState(() {
-      if (imagePaths?[index] == null) {
-        imagePaths?[index] = profilePicturePaths;
-      } else {
-        imagePaths?[index]?.addAll(profilePicturePaths);
-      }
-    });
-  }
+  // void setImageFile(int index, List<String> profilePicturePaths) {
+  //   setState(() {
+  //     if (imagePaths?[index] == null) {
+  //       imagePaths?[index] = profilePicturePaths;
+  //     } else {
+  //       imagePaths?[index]?.addAll(profilePicturePaths);
+  //     }
+  //   });
+  // }
 
-  void deleteImageFile(int index, {String? imagePathToRemove}) {
-    setState(() {
-      if (imagePathToRemove != null) {
-        imagePaths?[index]?.remove(imagePathToRemove);
-        if (imagePaths?[index]?.isEmpty ?? true) {
-          imagePaths?.remove(index);
-        }
-      } else {
-        imagePaths?.remove(index);
-      }
-    });
-  }
+  // void deleteImageFile(int index, {String? imagePathToRemove}) {
+  //   setState(() {
+  //     if (imagePathToRemove != null) {
+  //       imagePaths?[index]?.remove(imagePathToRemove);
+  //       if (imagePaths?[index]?.isEmpty ?? true) {
+  //         imagePaths?.remove(index);
+  //       }
+  //     } else {
+  //       imagePaths?.remove(index);
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -145,18 +153,23 @@ class _BookingScreenState extends State<BookingScreen> {
                                     showModalBottomSheet(
                                       context: context,
                                       builder: (context) {
-                                        return ImagePickerCropper(
-                                          removeDeleteOption:
-                                              imagePaths?[index] == null,
-                                          imagePath: (selectedImagePaths) {
-                                            setImageFile(
-                                                index, selectedImagePaths);
-                                          },
-                                          showDelete:
-                                              imagePaths?[index]?.isNotEmpty ??
-                                                  false,
-                                          deleteImage: () {},
-                                        );
+                                        return Obx(() {
+                                          final images =
+                                              controller.imagePaths[index] ??
+                                                  [];
+                                          return ImagePickerCropper(
+                                            removeDeleteOption: images.isEmpty,
+                                            imagePath: (selectedImagePaths) {
+                                              controller.addImagesToCloth(
+                                                  index, selectedImagePaths);
+                                            },
+                                            showDelete: images.isNotEmpty,
+                                            deleteImage: () {
+                                              controller
+                                                  .removeImageFromCloth(index);
+                                            },
+                                          );
+                                        });
                                       },
                                     );
                                   },
@@ -471,86 +484,87 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                               ],
                             ),
-                            imagePaths?[index] == null
-                                ? const SizedBox()
-                                : Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.only(
-                                          left: 8,
-                                          right: 8,
-                                          top: 10,
-                                        ),
-                                        child: Text(
-                                          "Uploaded Images:",
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 14),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8, horizontal: 8),
-                                        child: SizedBox(
-                                          height: 76,
-                                          child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            shrinkWrap: true,
-                                            itemCount:
-                                                imagePaths?[index]?.length ?? 0,
-                                            itemBuilder: (context, imgIndex) {
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 6),
-                                                child: Stack(
-                                                  children: [
-                                                    ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              5),
-                                                      child: Image.file(
-                                                        File(imagePaths![
-                                                            index]![imgIndex]),
-                                                        fit: BoxFit.cover,
-                                                        width: 56,
-                                                      ),
-                                                    ),
-                                                    Positioned(
-                                                      top: 5,
-                                                      right: 5,
-                                                      child: GestureDetector(
-                                                        onTap: () {
-                                                          deleteImageFile(index,
-                                                              imagePathToRemove:
-                                                                  imagePaths![
-                                                                          index]![
-                                                                      imgIndex]);
-                                                        },
-                                                        child:
-                                                            const CircleAvatar(
-                                                          radius: 12,
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                          child: Icon(
-                                                              Icons.close,
-                                                              size: 16,
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
+                            Obx(() {
+                              final images = controller.imagePaths[index] ?? [];
+                              return images.isEmpty
+                                  ? const SizedBox()
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 8, right: 8, top: 10),
+                                          child: Text(
+                                            "Uploaded Images:",
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 14),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 8),
+                                          child: SizedBox(
+                                            height: 76,
+                                            child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              shrinkWrap: true,
+                                              itemCount: images.length,
+                                              itemBuilder: (context, imgIndex) {
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 6),
+                                                  child: Stack(
+                                                    children: [
+                                                      ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(5),
+                                                        child: Image.file(
+                                                          File(
+                                                              images[imgIndex]),
+                                                          fit: BoxFit.cover,
+                                                          width: 56,
+                                                        ),
+                                                      ),
+                                                      Positioned(
+                                                        top: 5,
+                                                        right: 5,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            controller
+                                                                .removeImageFromCloth(
+                                                              index,
+                                                              imagePathToRemove:
+                                                                  images[
+                                                                      imgIndex],
+                                                            );
+                                                          },
+                                                          child:
+                                                              const CircleAvatar(
+                                                            radius: 12,
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            child: Icon(
+                                                                Icons.close,
+                                                                size: 16,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    );
+                            }),
                             Obx(() {
                               if (index >= controller.remarks.length ||
                                   controller.remarks[index].isEmpty) {
@@ -654,9 +668,17 @@ class _BookingScreenState extends State<BookingScreen> {
                       "Selected Add-ons: ${controller.selectedAddonNames}");
                   debugPrint(
                       "Selected Add-on Prices: ${controller.selectedAddonPrices}");
+                  debugPrint("Selected images: ${controller.imagePaths}");
                   debugPrint("Final Prices (Total per item): $prices");
 
-                  await controller.bookOrder(
+                  Map<int, List<File>> convertPathsToFiles(
+                      Map<int, List<String>> imagePaths) {
+                    return imagePaths.map((key, value) => MapEntry(
+                        key, value.map((path) => File(path)).toList()));
+                  }
+
+                  await controller
+                      .bookOrder(
                     context: context,
                     storeId: storeId,
                     customerId: widget.userId,
@@ -669,10 +691,13 @@ class _BookingScreenState extends State<BookingScreen> {
                     remarks: controller.remarks,
                     addonsname: controller.selectedAddonNames,
                     addonsprice: controller.selectedAddonPrices,
-                  );
-
-                  debugPrint(
-                      "Order placed successfully with item prices: $prices");
+                    itemImages: convertPathsToFiles(
+                        controller.imagePaths), // Convert here
+                  )
+                      .then((_) {
+                    debugPrint(
+                        "Order placed successfully with item prices: $prices");
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,

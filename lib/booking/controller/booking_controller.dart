@@ -1,38 +1,33 @@
+import 'dart:io';
 import 'package:fabspinrider/screen/confirm_store_booking.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import '../screen/home_search.dart';
 
 class BookingController extends GetxController {
-  // Correct type for filteredItems to store maps with name and phone.
   var filteredItems = <Map<String, String>>[].obs;
   var clothesSearched = <Map<String, String>>[].obs;
-  var isLoading = false.obs; // Observable to track loading state.
+  var isLoading = false.obs;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  var userid = 0.obs; // Observable integer
+  var userid = 0.obs;
   var brands = <Map<String, dynamic>>[].obs;
-  var selectedStainIds = <int>[].obs; // A list of integers for storing one selected ID per cloth
+  var selectedStainIds = <int>[].obs;
   var selectedAddons = <int, List<int>>{}.obs;
-
-  // Change to RxList<List<int>> for multiple cloth selections
   var colors = <Map<String, dynamic>>[].obs;
   var defects = <Map<String, dynamic>>[].obs;
   var addons = <Map<String, dynamic>>[].obs;
   var remarks = <String>[].obs;
-  // var brands = <Map<String, dynamic>>[].obs; // For stains
-  // var defects = <Map<String, dynamic>>[].obs; // For defects
-  // var colors = <Map<String, dynamic>>[].obs; // For colors
   var selectedAddonNames = <int, List<String>>{}.obs;
   var selectedAddonPrices = <int, List<int>>{}.obs;
-  //var selectedStainIds = <int>[].obs; // Selected stain IDs
-  var selectedDefectIds = <int>[].obs; // Selected defect IDs
-  var selectedColorIds = <int>[].obs; // Selected color IDs
-
+  var selectedDefectIds = <int>[].obs;
+  var selectedColorIds = <int>[].obs;
+  var imagePaths = <int, List<String>>{}.obs;
 
   void initializeClothSelections(int clothIndex) {
     if (!selectedAddonNames.containsKey(clothIndex)) {
@@ -42,7 +37,6 @@ class BookingController extends GetxController {
       selectedAddonPrices[clothIndex] = [];
     }
   }
-
 
   void addAddonToCloth(int clothIndex, String name, int price) {
     if (!selectedAddonNames.containsKey(clothIndex)) {
@@ -55,8 +49,8 @@ class BookingController extends GetxController {
     if (!selectedAddonNames[clothIndex]!.contains(name)) {
       selectedAddonNames[clothIndex]!.add(name);
       selectedAddonPrices[clothIndex]!.add(price);
-      print('Updated selectedAddonNames: $selectedAddonNames');
-      print('Updated selectedAddonPrices: $selectedAddonPrices');
+      debugPrint('Updated selectedAddonNames: $selectedAddonNames');
+      debugPrint('Updated selectedAddonPrices: $selectedAddonPrices');
     }
   }
 
@@ -65,14 +59,12 @@ class BookingController extends GetxController {
     selectedAddonPrices.removeWhere((key, value) => value.isEmpty);
   }
 
-// Call this after selection
   void finalizeSelections() {
     removeEmptySelections();
-    print('Final selections:');
-    print('Names: $selectedAddonNames');
-    print('Prices: $selectedAddonPrices');
+    debugPrint('Final selections:');
+    debugPrint('Names: $selectedAddonNames');
+    debugPrint('Prices: $selectedAddonPrices');
   }
-
 
   void removeAddonFromCloth(int clothIndex, String name, int price) {
     initializeClothSelections(clothIndex);
@@ -86,69 +78,68 @@ class BookingController extends GetxController {
   void refreshSelections() {
     selectedAddonNames.refresh();
     selectedAddonPrices.refresh();
+    imagePaths.refresh();
   }
 
-
-
-  // void addAddonToCloth(int clothIndex, int addonId) {
-  //   initializeClothSelections(clothIndex);
-  //   if (!selectedAddons[clothIndex]!.contains(addonId)) {
-  //     selectedAddons[clothIndex]!.add(addonId);
-  //   }
-  // }
-  //
-  // // Remove an addon from a specific cloth index
-  // void removeAddonFromCloth(int clothIndex, int addonId) {
-  //   initializeClothSelections(clothIndex);
-  //   selectedAddons[clothIndex]!.remove(addonId);
-  // }
-  //
-  //
   void initializeClothSelectionsstains(int clothIndex) {
-    // Ensure the list is initialized for the specific cloth index
     while (selectedStainIds.length <= clothIndex) {
-      selectedStainIds.add(-1); // Initialize with -1 (indicating no selection)
+      selectedStainIds.add(-1);
     }
   }
 
   void initializeDefectSelections(int clothIndex) {
     while (selectedDefectIds.length <= clothIndex) {
-      selectedDefectIds.add(-1); // Initialize with -1 (indicating no defect selected)
+      selectedDefectIds.add(-1);
     }
   }
 
   void initializeColorSelections(int clothIndex) {
     while (selectedColorIds.length <= clothIndex) {
-      selectedColorIds.add(-1); // Initialize with -1 (indicating no color selected)
+      selectedColorIds.add(-1);
     }
   }
 
-  // Observable to store remarks for each index
-
-
-// Function to ensure the list is initialized for the given index
   void initializeRemarks(int index) {
     while (remarks.length <= index) {
-      remarks.add(''); // Initialize with an empty string
+      remarks.add('');
     }
   }
 
+  void addImagesToCloth(int clothId, List<String> newImagePaths) {
+    if (!imagePaths.containsKey(clothId)) {
+      imagePaths[clothId] = newImagePaths;
+    } else {
+      imagePaths[clothId]?.addAll(newImagePaths);
+    }
+    update();
+  }
 
+  void removeImageFromCloth(int clothId, {String? imagePathToRemove}) {
+    if (!imagePaths.containsKey(clothId)) return;
 
+    if (imagePathToRemove != null) {
+      imagePaths[clothId]?.remove(imagePathToRemove);
+    } else {
+      // If no specific image is provided, remove all images for the clothId
+      imagePaths.remove(clothId);
+    }
 
+    // Remove the clothId entry if no images remain
+    if (imagePaths[clothId]?.isEmpty ?? true) {
+      imagePaths.remove(clothId);
+    }
 
-  // Reset stain selections for a specific cloth
-  // void resetClothSelections(int clothIndex) {
-  //   selectedStainIds[clothIndex].clear();
-  // }
+    imagePaths.refresh(); // Ensure UI rebuilds
+    update();
+  }
 
   Future<void> fetchAddons(String query) async {
     isLoading(true);
     final prefs = await SharedPreferences.getInstance();
     userid.value = prefs.getInt('UserId') ?? 0;
     try {
-      final response = await GetConnect().get(
-          'https://fabspin.org/api/addons?store_id=$userid&query=$query');
+      final response = await GetConnect()
+          .get('https://fabspin.org/api/addons?store_id=$userid&query=$query');
       if (response.statusCode == 200 && response.body['success']) {
         addons.value = List<Map<String, dynamic>>.from(response.body['data']);
       } else {
@@ -163,10 +154,6 @@ class BookingController extends GetxController {
     }
   }
 
-
-  //final RxBool isLoading = false.obs;
-
-
   Future<void> fetchDefects() async {
     isLoading(true); // Set loading to true
     final prefs = await SharedPreferences.getInstance();
@@ -178,7 +165,8 @@ class BookingController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['success']) {
-          defects.value = List<Map<String, dynamic>>.from(responseData['data']); // Store the data array
+          defects.value = List<Map<String, dynamic>>.from(
+              responseData['data']); // Store the data array
         } else {
           Get.snackbar('Error', 'Failed to fetch defects');
         }
@@ -203,7 +191,8 @@ class BookingController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['success']) {
-          brands.value = List<Map<String, dynamic>>.from(responseData['data']); // Store the data array
+          brands.value = List<Map<String, dynamic>>.from(
+              responseData['data']); // Store the data array
         } else {
           Get.snackbar('Error', 'Failed to fetch stains');
         }
@@ -228,7 +217,8 @@ class BookingController extends GetxController {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         if (responseData['success']) {
-          colors.value = List<Map<String, dynamic>>.from(responseData['data']); // Store the data array
+          colors.value = List<Map<String, dynamic>>.from(
+              responseData['data']); // Store the data array
         } else {
           Get.snackbar('Error', 'Failed to fetch colors');
         }
@@ -242,8 +232,6 @@ class BookingController extends GetxController {
     }
   }
 
-
-
   Future<void> bookOrder({
     required BuildContext context,
     required int storeId,
@@ -255,58 +243,248 @@ class BookingController extends GetxController {
     required List<int> selpattern,
     required List<int> selbrand,
     required List<String> remarks,
-    required  Map<int, List<String>> addonsname,
-    required  Map<int, List<int>> addonsprice
+    required Map<int, List<String>> addonsname,
+    required Map<int, List<int>> addonsprice,
+    required Map<int, List<File>> itemImages,
   }) async {
     final String url = "https://fabspin.org/api/create-laundry";
-
-    final Map<String, dynamic> body = {
-      "store_id": storeId.toString(),
-      "customer_id": customerId.toString(),
-      "itemid": itemIds,
-      "price": prices,
-      "quant": quantities,
-      "selcolor": selcolor,
-      "selpattern": selpattern,
-      "selbrand": selbrand,
-      "selremarks": remarks,
-      "addonname": addonsname.map((key, value) => MapEntry(key.toString(), value)),
-      "addonprice": addonsprice.map((key, value) => MapEntry(key.toString(), value)),
-
+    final headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'multipart/form-data',
     };
-    final finalUrl = Uri.parse(url);
+
+    final request = http.MultipartRequest('POST', Uri.parse(url))
+      ..headers.addAll(headers)
+      ..fields.addAll({
+        'store_id': storeId.toString(),
+        'customer_id': customerId.toString(),
+      });
+
+    // Add fields (unchanged)
+    for (var i = 0; i < itemIds.length; i++) {
+      request.fields['itemid[$i]'] = itemIds[i].toString();
+      if (i < prices.length) request.fields['price[$i]'] = prices[i].toString();
+      if (i < quantities.length)
+        request.fields['quant[$i]'] = quantities[i].toString();
+      if (i < selcolor.length)
+        request.fields['selcolor[$i]'] = selcolor[i].toString();
+      if (i < selpattern.length)
+        request.fields['selpattern[$i]'] = selpattern[i].toString();
+      if (i < selbrand.length)
+        request.fields['selbrand[$i]'] = selbrand[i].toString();
+      if (i < remarks.length) request.fields['selremarks[$i]'] = remarks[i];
+    }
+    addonsname.forEach((key, value) {
+      for (var i = 0; i < value.length; i++) {
+        request.fields['addonname[$key][$i]'] = value[i];
+      }
+    });
+    addonsprice.forEach((key, value) {
+      for (var i = 0; i < value.length; i++) {
+        request.fields['addonprice[$key][$i]'] = value[i].toString();
+      }
+    });
+
+    // Add images
+    for (var i = 0; i < itemIds.length; i++) {
+      final itemId = itemIds[i];
+      // Check if images exist for this item (assuming itemImages keys are indices)
+      final images = itemImages[i]; // Adjust if itemImages uses itemId as keys
+      if (images != null && images.isNotEmpty) {
+        for (var j = 0; j < images.length; j++) {
+          final image = images[j];
+          if (image.existsSync()) {
+            final mimeType = lookupMimeType(image.path) ?? 'image/jpeg';
+            final file = await http.MultipartFile.fromPath(
+              'images[$itemId][]', // e.g., images[3765][], images[3465][]
+              image.path,
+              contentType: MediaType.parse(mimeType),
+            );
+            request.files.add(file);
+            print('Added file: ${image.path} as images[$itemId][] ($mimeType)');
+          } else {
+            print('File not found: ${image.path}');
+          }
+        }
+      } else {
+        print('No images for itemId: $itemId');
+      }
+    }
 
     try {
-      final response = await http.post(
-        finalUrl,
-        headers: {
-          "Content-Type": "application/json", // Ensure Content-Type is set
-        },
-        body: jsonEncode(body),
-      );
+      print('Sending request with fields: ${request.fields}');
+      print('Files: ${request.files.map((f) => f.filename).toList()}');
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
 
       print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('Headers: ${response.headers}');
+      print('Response: $responseBody');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-        Get.snackbar("Success", "Order booked successfully: ${responseData['message']}");
+        final responseData = jsonDecode(responseBody);
+        Get.snackbar(
+            "Success", "Order booked successfully: ${responseData['message']}");
         final bookingId = responseData['booking_id'];
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ConfirmStoreBooking(bookingId: bookingId, customerId: customerId, storeId: storeId,)));
-        
-        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ConfirmStoreBooking(
+              bookingId: bookingId,
+              customerId: customerId,
+              storeId: storeId,
+            ),
+          ),
+        );
       } else {
-        final errorData = jsonDecode(response.body);
-        Get.snackbar("Error", "Failed to book order: ${errorData['error'] ?? 'Unknown error'}");
+        final errorData = jsonDecode(responseBody);
+        Get.snackbar("Error",
+            "Failed to book order: ${errorData['error'] ?? 'Unknown error'}");
       }
     } catch (e) {
       Get.snackbar("Error", "An error occurred: $e");
-      print( "An error occurred: $e");
-
+      print("Error: $e");
     }
   }
 
+  // Future<void> bookOrder({
+  //   required BuildContext context,
+  //   required int storeId,
+  //   required String customerId,
+  //   required List<int> itemIds,
+  //   required List<double> prices,
+  //   required List<int> quantities,
+  //   required List<int> selcolor,
+  //   required List<int> selpattern,
+  //   required List<int> selbrand,
+  //   required List<String> remarks,
+  //   required Map<int, List<String>> addonsname,
+  //   required Map<int, List<int>> addonsprice,
+  //   required Map<int, List<File>> itemImages,
+  // }) async {
+  //   final String url = "https://fabspin.org/api/create-laundry";
+
+  //   final headers = {
+  //     'Accept': 'application/json',
+  //     'Content-Type': 'multipart/form-data',
+  //   };
+
+  //   final request = http.MultipartRequest('POST', Uri.parse(url))
+  //     ..headers.addAll(headers)
+  //     ..fields.addAll({
+  //       'store_id': storeId.toString(),
+  //       'customer_id': customerId.toString(),
+  //     });
+
+  //   for (var i = 0; i < itemIds.length; i++) {
+  //     request.fields['itemid[$i]'] = itemIds[i].toString();
+  //     if (i < prices.length) request.fields['price[$i]'] = prices[i].toString();
+  //     if (i < quantities.length) {
+  //       request.fields['quant[$i]'] = quantities[i].toString();
+  //     }
+  //     if (i < selcolor.length) {
+  //       request.fields['selcolor[$i]'] = selcolor[i].toString();
+  //     }
+  //     if (i < selpattern.length) {
+  //       request.fields['selpattern[$i]'] = selpattern[i].toString();
+  //     }
+  //     if (i < selbrand.length) {
+  //       request.fields['selbrand[$i]'] = selbrand[i].toString();
+  //     }
+  //     if (i < remarks.length) request.fields['selremarks[$i]'] = remarks[i];
+  //   }
+  //   addonsname.forEach((key, value) {
+  //     for (var i = 0; i < value.length; i++) {
+  //       request.fields['addonname[$key][$i]'] = value[i];
+  //     }
+  //   });
+  //   addonsprice.forEach((key, value) {
+  //     for (var i = 0; i < value.length; i++) {
+  //       request.fields['addonprice[$key][$i]'] = value[i].toString();
+  //     }
+  //   });
+
+  //   print('Request Body: ${request.fields}'); // Debugging point
+
+  //   try {
+  //     // Attach images
+  //     // Attach images
+  //     for (var entry in itemImages.entries) {
+  //       final itemId = entry.key;
+  //       final images = entry.value;
+  //       for (var i = 0; i < images.length; i++) {
+  //         final image = images[i];
+  //         if (image != null) {
+  //           final mimeTypeData = lookupMimeType(image.path)?.split('/') ??
+  //               ['application', 'octet-stream'];
+  //           final fileExtension = mimeTypeData[1].toLowerCase();
+  //           if (['jpg', 'jpeg', 'png', 'svg'].contains(fileExtension)) {
+  //             final file = await http.MultipartFile.fromPath(
+  //               'images[$itemId][$i]',
+  //               image.path,
+  //               contentType: MediaType(mimeTypeData[0], mimeTypeData[1]),
+  //             );
+  //             request.files.add(file);
+  //           } else {
+  //             print('Unsupported file type: $fileExtension');
+  //           }
+  //         }
+  //       }
+  //     }
+  //     // for (var entry in itemImages.entries) {
+  //     //   final itemId = entry.key;
+  //     //   final images = entry.value;
+  //     //   for (var i = 0; i < images.length; i++) {
+  //     //     final image = images[i];
+  //     //     final mimeType =
+  //     //         lookupMimeType(image.path) ?? 'application/octet-stream';
+  //     //     final stream = http.ByteStream(image.openRead());
+  //     //     final length = await image.length();
+  //     //     final multipartFile = http.MultipartFile(
+  //     //       'images[$itemId][$i]',
+  //     //       stream,
+  //     //       length,
+  //     //       filename: image.path.split('/').last, // Extract filename from path
+  //     //       contentType: MediaType.parse(mimeType),
+  //     //     );
+  //     //     request.files.add(multipartFile);
+  //     //   }
+  //     // }
+
+  //     print(
+  //         'Request Files: ${request.files.map((file) => file.filename).toList()}');
+
+  //     final response = await request.send();
+
+  //     final responseBody = await response.stream.bytesToString();
+  //     print('Status Code: ${response.statusCode}');
+  //     print('Response Body: $responseBody');
+  //     print('Headers: ${response.headers}');
+
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       final responseData = jsonDecode(responseBody);
+  //       Get.snackbar(
+  //           "Success", "Order booked successfully: ${responseData['message']}");
+  //       final bookingId = responseData['booking_id'];
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => ConfirmStoreBooking(
+  //             bookingId: bookingId,
+  //             customerId: customerId,
+  //             storeId: storeId,
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       final errorData = jsonDecode(responseBody);
+  //       Get.snackbar("Error",
+  //           "Failed to book order: ${errorData['error'] ?? 'Unknown error'}");
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar("Error", "An error occurred: $e");
+  //     print("An error occurred: $e");
+  //   }
+  // }
 
   Future<void> searchClothes(String storeid, String query) async {
     final prefs = await SharedPreferences.getInstance();
@@ -325,7 +503,7 @@ class BookingController extends GetxController {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        print("Clothes search response: $responseData");
+        debugPrint("Clothes search response: $responseData");
 
         if (responseData != null && responseData is List) {
           // Convert list of cloth_name to list of maps
@@ -337,7 +515,6 @@ class BookingController extends GetxController {
                 "service_name": item['service_name'].toString(),
                 "subtrade_name": item['subtrade_name'].toString(),
                 "id": item['id'].toString(),
-
               };
             }
             return {"cloth_name": "Unknown"};
@@ -345,18 +522,16 @@ class BookingController extends GetxController {
 
           clothesSearched.assignAll(results);
         } else {
-          print("No valid search results found.");
+          debugPrint("No valid search results found.");
         }
       } else {
-        print("Failed to search clothes. Status code: ${response.statusCode}");
+        debugPrint(
+            "Failed to search clothes. Status code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error during search: $e");
+      debugPrint("Error during search: $e");
     }
   }
-
-
-
 
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
