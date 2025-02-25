@@ -264,14 +264,18 @@ class BookingController extends GetxController {
     for (var i = 0; i < itemIds.length; i++) {
       request.fields['itemid[$i]'] = itemIds[i].toString();
       if (i < prices.length) request.fields['price[$i]'] = prices[i].toString();
-      if (i < quantities.length)
+      if (i < quantities.length) {
         request.fields['quant[$i]'] = quantities[i].toString();
-      if (i < selcolor.length)
+      }
+      if (i < selcolor.length) {
         request.fields['selcolor[$i]'] = selcolor[i].toString();
-      if (i < selpattern.length)
+      }
+      if (i < selpattern.length) {
         request.fields['selpattern[$i]'] = selpattern[i].toString();
-      if (i < selbrand.length)
+      }
+      if (i < selbrand.length) {
         request.fields['selbrand[$i]'] = selbrand[i].toString();
+      }
       if (i < remarks.length) request.fields['selremarks[$i]'] = remarks[i];
     }
     addonsname.forEach((key, value) {
@@ -288,20 +292,27 @@ class BookingController extends GetxController {
     // Add images
     for (var i = 0; i < itemIds.length; i++) {
       final itemId = itemIds[i];
-      // Check if images exist for this item (assuming itemImages keys are indices)
-      final images = itemImages[i]; // Adjust if itemImages uses itemId as keys
+      // Check if images exist for this item
+      final images = itemImages[i]; // Assuming itemImages is indexed by i
+      print(
+          'Processing itemId: $itemId with images: ${images?.map((img) => img.path).toList() ?? "none"}');
+
       if (images != null && images.isNotEmpty) {
         for (var j = 0; j < images.length; j++) {
           final image = images[j];
+          print('Checking image $j for itemId $itemId: ${image.path}');
+
           if (image.existsSync()) {
             final mimeType = lookupMimeType(image.path) ?? 'image/jpeg';
+            // Use explicit indexing to differentiate images (e.g., images[3751][0], images[3751][1])
+            final fieldName = 'images[$itemId][$j]';
             final file = await http.MultipartFile.fromPath(
-              'images[$itemId][]', // e.g., images[3765][], images[3465][]
+              fieldName,
               image.path,
               contentType: MediaType.parse(mimeType),
             );
             request.files.add(file);
-            print('Added file: ${image.path} as images[$itemId][] ($mimeType)');
+            print('Added file: ${image.path} as $fieldName ($mimeType)');
           } else {
             print('File not found: ${image.path}');
           }
@@ -345,146 +356,6 @@ class BookingController extends GetxController {
       print("Error: $e");
     }
   }
-
-  // Future<void> bookOrder({
-  //   required BuildContext context,
-  //   required int storeId,
-  //   required String customerId,
-  //   required List<int> itemIds,
-  //   required List<double> prices,
-  //   required List<int> quantities,
-  //   required List<int> selcolor,
-  //   required List<int> selpattern,
-  //   required List<int> selbrand,
-  //   required List<String> remarks,
-  //   required Map<int, List<String>> addonsname,
-  //   required Map<int, List<int>> addonsprice,
-  //   required Map<int, List<File>> itemImages,
-  // }) async {
-  //   final String url = "https://fabspin.org/api/create-laundry";
-
-  //   final headers = {
-  //     'Accept': 'application/json',
-  //     'Content-Type': 'multipart/form-data',
-  //   };
-
-  //   final request = http.MultipartRequest('POST', Uri.parse(url))
-  //     ..headers.addAll(headers)
-  //     ..fields.addAll({
-  //       'store_id': storeId.toString(),
-  //       'customer_id': customerId.toString(),
-  //     });
-
-  //   for (var i = 0; i < itemIds.length; i++) {
-  //     request.fields['itemid[$i]'] = itemIds[i].toString();
-  //     if (i < prices.length) request.fields['price[$i]'] = prices[i].toString();
-  //     if (i < quantities.length) {
-  //       request.fields['quant[$i]'] = quantities[i].toString();
-  //     }
-  //     if (i < selcolor.length) {
-  //       request.fields['selcolor[$i]'] = selcolor[i].toString();
-  //     }
-  //     if (i < selpattern.length) {
-  //       request.fields['selpattern[$i]'] = selpattern[i].toString();
-  //     }
-  //     if (i < selbrand.length) {
-  //       request.fields['selbrand[$i]'] = selbrand[i].toString();
-  //     }
-  //     if (i < remarks.length) request.fields['selremarks[$i]'] = remarks[i];
-  //   }
-  //   addonsname.forEach((key, value) {
-  //     for (var i = 0; i < value.length; i++) {
-  //       request.fields['addonname[$key][$i]'] = value[i];
-  //     }
-  //   });
-  //   addonsprice.forEach((key, value) {
-  //     for (var i = 0; i < value.length; i++) {
-  //       request.fields['addonprice[$key][$i]'] = value[i].toString();
-  //     }
-  //   });
-
-  //   print('Request Body: ${request.fields}'); // Debugging point
-
-  //   try {
-  //     // Attach images
-  //     // Attach images
-  //     for (var entry in itemImages.entries) {
-  //       final itemId = entry.key;
-  //       final images = entry.value;
-  //       for (var i = 0; i < images.length; i++) {
-  //         final image = images[i];
-  //         if (image != null) {
-  //           final mimeTypeData = lookupMimeType(image.path)?.split('/') ??
-  //               ['application', 'octet-stream'];
-  //           final fileExtension = mimeTypeData[1].toLowerCase();
-  //           if (['jpg', 'jpeg', 'png', 'svg'].contains(fileExtension)) {
-  //             final file = await http.MultipartFile.fromPath(
-  //               'images[$itemId][$i]',
-  //               image.path,
-  //               contentType: MediaType(mimeTypeData[0], mimeTypeData[1]),
-  //             );
-  //             request.files.add(file);
-  //           } else {
-  //             print('Unsupported file type: $fileExtension');
-  //           }
-  //         }
-  //       }
-  //     }
-  //     // for (var entry in itemImages.entries) {
-  //     //   final itemId = entry.key;
-  //     //   final images = entry.value;
-  //     //   for (var i = 0; i < images.length; i++) {
-  //     //     final image = images[i];
-  //     //     final mimeType =
-  //     //         lookupMimeType(image.path) ?? 'application/octet-stream';
-  //     //     final stream = http.ByteStream(image.openRead());
-  //     //     final length = await image.length();
-  //     //     final multipartFile = http.MultipartFile(
-  //     //       'images[$itemId][$i]',
-  //     //       stream,
-  //     //       length,
-  //     //       filename: image.path.split('/').last, // Extract filename from path
-  //     //       contentType: MediaType.parse(mimeType),
-  //     //     );
-  //     //     request.files.add(multipartFile);
-  //     //   }
-  //     // }
-
-  //     print(
-  //         'Request Files: ${request.files.map((file) => file.filename).toList()}');
-
-  //     final response = await request.send();
-
-  //     final responseBody = await response.stream.bytesToString();
-  //     print('Status Code: ${response.statusCode}');
-  //     print('Response Body: $responseBody');
-  //     print('Headers: ${response.headers}');
-
-  //     if (response.statusCode == 200 || response.statusCode == 201) {
-  //       final responseData = jsonDecode(responseBody);
-  //       Get.snackbar(
-  //           "Success", "Order booked successfully: ${responseData['message']}");
-  //       final bookingId = responseData['booking_id'];
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => ConfirmStoreBooking(
-  //             bookingId: bookingId,
-  //             customerId: customerId,
-  //             storeId: storeId,
-  //           ),
-  //         ),
-  //       );
-  //     } else {
-  //       final errorData = jsonDecode(responseBody);
-  //       Get.snackbar("Error",
-  //           "Failed to book order: ${errorData['error'] ?? 'Unknown error'}");
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar("Error", "An error occurred: $e");
-  //     print("An error occurred: $e");
-  //   }
-  // }
 
   Future<void> searchClothes(String storeid, String query) async {
     final prefs = await SharedPreferences.getInstance();
