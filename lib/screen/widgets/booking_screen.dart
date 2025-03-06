@@ -148,37 +148,37 @@ class _BookingScreenState extends State<BookingScreen> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      builder: (context) {
-                                        return Obx(() {
-                                          final images =
-                                              controller.imagePaths[index] ??
-                                                  [];
-                                          return ImagePickerCropper(
-                                            removeDeleteOption: images.isEmpty,
-                                            imagePath: (selectedImagePaths) {
-                                              controller.addImagesToCloth(
-                                                  index, selectedImagePaths);
-                                            },
-                                            showDelete: images.isNotEmpty,
-                                            deleteImage: () {
-                                              controller
-                                                  .removeImageFromCloth(index);
-                                            },
-                                          );
-                                        });
-                                      },
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.camera_alt_outlined,
-                                    size: 24,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                // IconButton(
+                                //   onPressed: () {
+                                //     showModalBottomSheet(
+                                //       context: context,
+                                //       builder: (context) {
+                                //         return Obx(() {
+                                //           final images =
+                                //               controller.imagePaths[index] ??
+                                //                   [];
+                                //           return ImagePickerCropper(
+                                //             removeDeleteOption: images.isEmpty,
+                                //             imagePath: (selectedImagePaths) {
+                                //               controller.addImagesToCloth(
+                                //                   index, selectedImagePaths);
+                                //             },
+                                //             showDelete: images.isNotEmpty,
+                                //             deleteImage: () {
+                                //               controller
+                                //                   .removeImageFromCloth(index);
+                                //             },
+                                //           );
+                                //         });
+                                //       },
+                                //     );
+                                //   },
+                                //   icon: const Icon(
+                                //     Icons.camera_alt_outlined,
+                                //     size: 24,
+                                //     color: Colors.black,
+                                //   ),
+                                // ),
                               ],
                             ),
                             Row(
@@ -188,9 +188,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                     "Price per item: ₹${currentPrices[index].floor()}",
                                     style:
                                         Theme.of(context).textTheme.bodyMedium),
-                                Text("Take a picture",
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium)
+                                // Text("Take a picture",
+                                //     style:
+                                //         Theme.of(context).textTheme.bodyMedium)
                               ],
                             ),
                             const SizedBox(height: 22),
@@ -484,87 +484,87 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                               ],
                             ),
-                            Obx(() {
-                              final images = controller.imagePaths[index] ?? [];
-                              return images.isEmpty
-                                  ? const SizedBox()
-                                  : Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Padding(
-                                          padding: EdgeInsets.only(
-                                              left: 8, right: 8, top: 10),
-                                          child: Text(
-                                            "Uploaded Images:",
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 14),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8, horizontal: 8),
-                                          child: SizedBox(
-                                            height: 76,
-                                            child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              shrinkWrap: true,
-                                              itemCount: images.length,
-                                              itemBuilder: (context, imgIndex) {
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 6),
-                                                  child: Stack(
-                                                    children: [
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(5),
-                                                        child: Image.file(
-                                                          File(
-                                                              images[imgIndex]),
-                                                          fit: BoxFit.cover,
-                                                          width: 56,
-                                                        ),
-                                                      ),
-                                                      Positioned(
-                                                        top: 5,
-                                                        right: 5,
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            controller
-                                                                .removeImageFromCloth(
-                                                              index,
-                                                              imagePathToRemove:
-                                                                  images[
-                                                                      imgIndex],
-                                                            );
-                                                          },
-                                                          child:
-                                                              const CircleAvatar(
-                                                            radius: 12,
-                                                            backgroundColor:
-                                                                Colors.red,
-                                                            child: Icon(
-                                                                Icons.close,
-                                                                size: 16,
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    );
-                            }),
+                            // Obx(() {
+                            //   final images = controller.imagePaths[index] ?? [];
+                            //   return images.isEmpty
+                            //       ? const SizedBox()
+                            //       : Column(
+                            //           crossAxisAlignment:
+                            //               CrossAxisAlignment.start,
+                            //           children: [
+                            //             const Padding(
+                            //               padding: EdgeInsets.only(
+                            //                   left: 8, right: 8, top: 10),
+                            //               child: Text(
+                            //                 "Uploaded Images:",
+                            //                 style: TextStyle(
+                            //                     color: Colors.black,
+                            //                     fontSize: 14),
+                            //               ),
+                            //             ),
+                            //             Padding(
+                            //               padding: const EdgeInsets.symmetric(
+                            //                   vertical: 8, horizontal: 8),
+                            //               child: SizedBox(
+                            //                 height: 76,
+                            //                 child: ListView.builder(
+                            //                   scrollDirection: Axis.horizontal,
+                            //                   shrinkWrap: true,
+                            //                   itemCount: images.length,
+                            //                   itemBuilder: (context, imgIndex) {
+                            //                     return Padding(
+                            //                       padding:
+                            //                           const EdgeInsets.only(
+                            //                               left: 6),
+                            //                       child: Stack(
+                            //                         children: [
+                            //                           ClipRRect(
+                            //                             borderRadius:
+                            //                                 BorderRadius
+                            //                                     .circular(5),
+                            //                             child: Image.file(
+                            //                               File(
+                            //                                   images[imgIndex]),
+                            //                               fit: BoxFit.cover,
+                            //                               width: 56,
+                            //                             ),
+                            //                           ),
+                            //                           Positioned(
+                            //                             top: 5,
+                            //                             right: 5,
+                            //                             child: GestureDetector(
+                            //                               onTap: () {
+                            //                                 controller
+                            //                                     .removeImageFromCloth(
+                            //                                   index,
+                            //                                   imagePathToRemove:
+                            //                                       images[
+                            //                                           imgIndex],
+                            //                                 );
+                            //                               },
+                            //                               child:
+                            //                                   const CircleAvatar(
+                            //                                 radius: 12,
+                            //                                 backgroundColor:
+                            //                                     Colors.red,
+                            //                                 child: Icon(
+                            //                                     Icons.close,
+                            //                                     size: 16,
+                            //                                     color: Colors
+                            //                                         .white),
+                            //                               ),
+                            //                             ),
+                            //                           ),
+                            //                         ],
+                            //                       ),
+                            //                     );
+                            //                   },
+                            //                 ),
+                            //               ),
+                            //             )
+                            //           ],
+                            //         );
+                            // }),
                             Obx(() {
                               if (index >= controller.remarks.length ||
                                   controller.remarks[index].isEmpty) {
@@ -673,8 +673,12 @@ class _BookingScreenState extends State<BookingScreen> {
 
                   Map<int, List<File>> convertPathsToFiles(
                       Map<int, List<String>> imagePaths) {
-                    return imagePaths.map((key, value) => MapEntry(
-                        key, value.map((path) => File(path)).toList()));
+                    return imagePaths.map(
+                      (key, value) => MapEntry(
+                        key,
+                        value.map((path) => File(path)).toList(),
+                      ),
+                    );
                   }
 
                   await controller

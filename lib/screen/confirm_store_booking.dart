@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:fabspinrider/booking/screen/home_search.dart';
+import 'package:fabspinrider/screen/image_upload_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +27,7 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
   Future<void> confirmLaundry() async {
     final url =
         "https://fabspin.org/api/confirm-laundry-page/${widget.bookingId}/${widget.customerId}";
+    debugPrint("\n\n$url\n");
     final finalUrl = Uri.parse(url);
 
     try {
@@ -255,13 +256,21 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
 
   Widget _confirmButton() {
     return InkWell(
-      onTap: () => Get.offAll(HomeSearch()),
+      onTap: () {
+        Get.to(() => BarcodeScreen(bookingId: widget.bookingId.toString()));
+      },
       child: Container(
         height: 45,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15), color: Colors.black),
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.black,
+        ),
         child: const Center(
-            child: Text("Confirm", style: TextStyle(color: Colors.white))),
+          child: Text(
+            "Continue",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
     );
   }
