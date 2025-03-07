@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:fabspinrider/booking/controller/booking_controller.dart';
 import 'package:fabspinrider/screen/widgets/booking_screen_helpers.dart';
-import 'package:fabspinrider/widgets/image_picker_cropper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -10,9 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class BookingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> selectedClothes;
   final String userId;
+  final userName;
 
   const BookingScreen(
-      {super.key, required this.selectedClothes, required this.userId});
+      {super.key,
+      required this.selectedClothes,
+      required this.userId,
+      required this.userName});
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -60,11 +63,10 @@ class _BookingScreenState extends State<BookingScreen> {
     final Map<String, dynamic> requestBody = {
       "addonname": {},
       "addonprice": {},
-      "images": {}, // 🔹 Added images key
+      "images": {},
     };
 
     for (final clothId in itemIds) {
-      // 🔹 Add selected Add-ons
       if (controller.selectedAddonNames.containsKey(clothId)) {
         requestBody["addonname"][clothId.toString()] =
             controller.selectedAddonNames[clothId];
@@ -72,7 +74,6 @@ class _BookingScreenState extends State<BookingScreen> {
             controller.selectedAddonPrices[clothId];
       }
 
-      // 🔹 Add Image Paths
       if (controller.imagePaths.containsKey(clothId) &&
           controller.imagePaths[clothId]!.isNotEmpty) {
         requestBody["images"][clothId.toString()] =
@@ -112,7 +113,7 @@ class _BookingScreenState extends State<BookingScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Selected Clothes'),
+        title: Text('Selected Clothes for ${widget.userName}'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -239,11 +240,19 @@ class _BookingScreenState extends State<BookingScreen> {
                                       onPressed: () {
                                         setState(() {
                                           counters[index]++;
+
                                           BookingScreenHelpers.updatePrice(
                                               index,
                                               controllers,
                                               currentPrices,
                                               counters);
+
+                                          if (counters[index] > 1) {
+                                            controller.selectedStainIds[index] =
+                                                0;
+                                            controller
+                                                .selectedDefectIds[index] = 0;
+                                          }
                                         });
                                       },
                                       child: const Icon(Icons.add,
@@ -293,49 +302,116 @@ class _BookingScreenState extends State<BookingScreen> {
                               shrinkWrap: true,
                               children: [
                                 InkWell(
-                                  onTap: () {
-                                    BookingScreenHelpers.showStainDialog(
-                                        context, index, controller);
-                                  },
+                                  onTap: counters[index] > 1
+                                      ? () {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "This option is disabled when quantity > 1"),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      : () {
+                                          BookingScreenHelpers.showStainDialog(
+                                              context, index, controller);
+                                        },
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey[300],
+                                      color: counters[index] > 1
+                                          ? Colors.grey.withValues(alpha: 0.12)
+                                          : Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
-                                      child: Obx(
-                                        () {
-                                          if (index >=
-                                              controller
-                                                  .selectedStainIds.length) {
-                                            return const Text('Stain',
-                                                style: TextStyle(
-                                                    color: Colors.black));
-                                          }
-
-                                          final selectedStainId = controller
-                                              .selectedStainIds[index];
-                                          final selectedStain =
-                                              controller.brands.firstWhere(
-                                            (brand) =>
-                                                brand['id'] == selectedStainId,
-                                            orElse: () => <String, dynamic>{},
-                                          );
-
+                                      child: Obx(() {
+                                        if (index >=
+                                            controller
+                                                .selectedStainIds.length) {
                                           return Text(
-                                            selectedStain.containsKey('name')
-                                                ? '${selectedStain['name']}'
-                                                : 'Stain',
-                                            style: const TextStyle(
-                                                color: Colors.black),
-                                            textAlign: TextAlign.center,
+                                            'Stain',
+                                            style: counters[index] > 1
+                                                ? const TextStyle(
+                                                    color: Colors.grey)
+                                                : const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                           );
-                                        },
-                                      ),
+                                        }
+                                        final selectedStainId =
+                                            controller.selectedStainIds[index];
+                                        final selectedStain =
+                                            controller.brands.firstWhere(
+                                          (brand) =>
+                                              brand['id'] == selectedStainId,
+                                          orElse: () => <String, dynamic>{},
+                                        );
+
+                                        return Text(
+                                          selectedStain.containsKey('name')
+                                              ? '${selectedStain['name']}'
+                                              : 'Stain',
+                                          style: counters[index] > 1
+                                              ? const TextStyle(
+                                                  color: Colors.grey)
+                                              : const TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          textAlign: TextAlign.center,
+                                        );
+                                      }),
                                     ),
                                   ),
                                 ),
+
+                                // InkWell(
+                                //   onTap: () {
+                                //     BookingScreenHelpers.showStainDialog(
+                                //         context, index, controller);
+                                //   },
+                                //   child: Container(
+                                //     padding: const EdgeInsets.all(4),
+                                //     decoration: BoxDecoration(
+                                //       color: Colors.grey[300],
+                                //       borderRadius: BorderRadius.circular(12),
+                                //     ),
+                                //     child: Center(
+                                //       child: Obx(
+                                //         () {
+                                //           if (index >=
+                                //               controller
+                                //                   .selectedStainIds.length) {
+                                //             return const Text('Stain',
+                                //                 style: TextStyle(
+                                //                     color: Colors.black));
+                                //           }
+
+                                //           final selectedStainId = controller
+                                //               .selectedStainIds[index];
+                                //           final selectedStain =
+                                //               controller.brands.firstWhere(
+                                //             (brand) =>
+                                //                 brand['id'] == selectedStainId,
+                                //             orElse: () => <String, dynamic>{},
+                                //           );
+
+                                //           return Text(
+                                //             selectedStain.containsKey('name')
+                                //                 ? '${selectedStain['name']}'
+                                //                 : 'Stain',
+                                //             style: const TextStyle(
+                                //                 color: Colors.black),
+                                //             textAlign: TextAlign.center,
+                                //           );
+                                //         },
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
                                 InkWell(
                                   onTap: () {
                                     BookingScreenHelpers.showColorsDialog(
@@ -355,7 +431,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                                   controller.colors.length) {
                                             return const Text('Color',
                                                 style: TextStyle(
-                                                    color: Colors.black));
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                ));
                                           }
 
                                           if (index >=
@@ -363,7 +441,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                                   .selectedColorIds.length) {
                                             return const Text('Color',
                                                 style: TextStyle(
-                                                    color: Colors.black));
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                ));
                                           }
 
                                           final selectedColorId = controller
@@ -381,7 +461,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                                 ? '${selectedColor['name']}'
                                                 : 'Color',
                                             style: const TextStyle(
-                                                color: Colors.black),
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                             textAlign: TextAlign.center,
                                           );
                                         },
@@ -390,57 +472,69 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ),
                                 ),
                                 InkWell(
-                                  onTap: () {
-                                    BookingScreenHelpers.showDefectsDialog(
-                                        context, index, controller);
-                                  },
+                                  onTap: counters[index] > 1
+                                      ? () {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "This option is disabled when quantity is more than 1"),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      : () {
+                                          BookingScreenHelpers
+                                              .showDefectsDialog(
+                                                  context, index, controller);
+                                        },
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey[300],
+                                      color: counters[index] > 1
+                                          ? Colors.grey.withValues(alpha: 0.12)
+                                          : Colors.grey[300],
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Center(
-                                      child: Obx(
-                                        () {
-                                          if (controller.defects.isEmpty ||
-                                              index >=
-                                                  controller.defects.length) {
-                                            return const Text('Defects',
-                                                style: TextStyle(
-                                                    color: Colors.black));
-                                          }
-
-                                          if (index >=
-                                              controller
-                                                  .selectedDefectIds.length) {
-                                            return const Text('Defects',
-                                                style: TextStyle(
-                                                    color: Colors.black));
-                                          }
-
-                                          final selectedDefectId = controller
-                                              .selectedDefectIds[index];
-
-                                          final selectedDefect =
-                                              controller.defects.firstWhere(
-                                            (defect) =>
-                                                defect['id'] ==
-                                                selectedDefectId,
-                                            orElse: () => <String, dynamic>{},
-                                          );
-
+                                      child: Obx(() {
+                                        if (index >=
+                                            controller
+                                                .selectedDefectIds.length) {
                                           return Text(
-                                            selectedDefect
-                                                    .containsKey('remarks')
-                                                ? "${selectedDefect['remarks']}"
-                                                : 'Defects',
-                                            style: const TextStyle(
-                                                color: Colors.black),
-                                            textAlign: TextAlign.center,
+                                            'Defects',
+                                            style: counters[index] > 1
+                                                ? const TextStyle(
+                                                    color: Colors.grey)
+                                                : const TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                           );
-                                        },
-                                      ),
+                                        }
+                                        final selectedDefectId =
+                                            controller.selectedDefectIds[index];
+                                        final selectedDefect =
+                                            controller.defects.firstWhere(
+                                          (defect) =>
+                                              defect['id'] == selectedDefectId,
+                                          orElse: () => <String, dynamic>{},
+                                        );
+
+                                        return Text(
+                                          selectedDefect.containsKey('remarks')
+                                              ? '${selectedDefect['remarks']}'
+                                              : 'Defects',
+                                          style: counters[index] > 1
+                                              ? const TextStyle(
+                                                  color: Colors.grey)
+                                              : const TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          textAlign: TextAlign.center,
+                                        );
+                                      }),
                                     ),
                                   ),
                                 ),
@@ -456,7 +550,13 @@ class _BookingScreenState extends State<BookingScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Center(
-                                      child: Text('Remarks'),
+                                      child: Text(
+                                        'Remarks',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -478,7 +578,13 @@ class _BookingScreenState extends State<BookingScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Center(
-                                      child: Text('Addons'),
+                                      child: Text(
+                                        'Addons',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),

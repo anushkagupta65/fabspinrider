@@ -74,29 +74,29 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Obx(() => ElevatedButton(
-              onPressed: controller.isLoading.value
-                  ? null
-                  : controller.validateForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 50.0, vertical: 10.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: controller.isLoading.value
-                  ? CircularProgressIndicator()
-                  : Text(
-                'LOGIN',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )),
+                  onPressed: controller.isLoading.value
+                      ? null
+                      : controller.validateForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50.0, vertical: 10.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  child: controller.isLoading.value
+                      ? CircularProgressIndicator()
+                      : Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                )),
           ],
         ),
       ),
