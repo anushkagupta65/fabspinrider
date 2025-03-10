@@ -149,37 +149,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                 ),
-                                // IconButton(
-                                //   onPressed: () {
-                                //     showModalBottomSheet(
-                                //       context: context,
-                                //       builder: (context) {
-                                //         return Obx(() {
-                                //           final images =
-                                //               controller.imagePaths[index] ??
-                                //                   [];
-                                //           return ImagePickerCropper(
-                                //             removeDeleteOption: images.isEmpty,
-                                //             imagePath: (selectedImagePaths) {
-                                //               controller.addImagesToCloth(
-                                //                   index, selectedImagePaths);
-                                //             },
-                                //             showDelete: images.isNotEmpty,
-                                //             deleteImage: () {
-                                //               controller
-                                //                   .removeImageFromCloth(index);
-                                //             },
-                                //           );
-                                //         });
-                                //       },
-                                //     );
-                                //   },
-                                //   icon: const Icon(
-                                //     Icons.camera_alt_outlined,
-                                //     size: 24,
-                                //     color: Colors.black,
-                                //   ),
-                                // ),
                               ],
                             ),
                             Row(
@@ -189,9 +158,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                     "Price per item: ₹${currentPrices[index].floor()}",
                                     style:
                                         Theme.of(context).textTheme.bodyMedium),
-                                // Text("Take a picture",
-                                //     style:
-                                //         Theme.of(context).textTheme.bodyMedium)
                               ],
                             ),
                             const SizedBox(height: 22),
@@ -247,12 +213,12 @@ class _BookingScreenState extends State<BookingScreen> {
                                               currentPrices,
                                               counters);
 
-                                          if (counters[index] > 1) {
-                                            controller.selectedStainIds[index] =
-                                                0;
-                                            controller
-                                                .selectedDefectIds[index] = 0;
-                                          }
+                                          // if (counters[index] > 1) {
+                                          //   controller.selectedStainIds[index] =
+                                          //       0;
+                                          //   controller
+                                          //       .selectedDefectIds[index] = 0;
+                                          // }
                                         });
                                       },
                                       child: const Icon(Icons.add,
@@ -367,51 +333,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                     ),
                                   ),
                                 ),
-
-                                // InkWell(
-                                //   onTap: () {
-                                //     BookingScreenHelpers.showStainDialog(
-                                //         context, index, controller);
-                                //   },
-                                //   child: Container(
-                                //     padding: const EdgeInsets.all(4),
-                                //     decoration: BoxDecoration(
-                                //       color: Colors.grey[300],
-                                //       borderRadius: BorderRadius.circular(12),
-                                //     ),
-                                //     child: Center(
-                                //       child: Obx(
-                                //         () {
-                                //           if (index >=
-                                //               controller
-                                //                   .selectedStainIds.length) {
-                                //             return const Text('Stain',
-                                //                 style: TextStyle(
-                                //                     color: Colors.black));
-                                //           }
-
-                                //           final selectedStainId = controller
-                                //               .selectedStainIds[index];
-                                //           final selectedStain =
-                                //               controller.brands.firstWhere(
-                                //             (brand) =>
-                                //                 brand['id'] == selectedStainId,
-                                //             orElse: () => <String, dynamic>{},
-                                //           );
-
-                                //           return Text(
-                                //             selectedStain.containsKey('name')
-                                //                 ? '${selectedStain['name']}'
-                                //                 : 'Stain',
-                                //             style: const TextStyle(
-                                //                 color: Colors.black),
-                                //             textAlign: TextAlign.center,
-                                //           );
-                                //         },
-                                //       ),
-                                //     ),
-                                //   ),
-                                // ),
                                 InkWell(
                                   onTap: () {
                                     BookingScreenHelpers.showColorsDialog(

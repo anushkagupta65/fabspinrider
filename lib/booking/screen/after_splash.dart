@@ -18,7 +18,6 @@ class AfterSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     // void getID() async{
     //     final prefs = await SharedPreferences.getInstance();
     //     final userId = prefs.getInt('UserId') ?? 0;
@@ -29,7 +28,6 @@ class AfterSplash extends StatelessWidget {
       final prefs = await SharedPreferences.getInstance();
       userId = prefs.getInt('UserId') ?? 0;
       userIdRider = prefs.getInt('user_id') ?? 0;
-
 
       // if (userId != 0) {
       //   // If UserId exists, navigate to HomeSearch
@@ -47,54 +45,56 @@ class AfterSplash extends StatelessWidget {
               onTap: () {
                 print("Rider Usr id: ${userIdRider}");
                 userIdRider != 0
-                ? Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                )
-                    :Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
+                    ? Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeScreen()),
+                      )
+                    : Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
               },
               child: Container(
-                  width: 200,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.grey),
-                  child: Center(
-                    child: Text(
-                      "Rider Login",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )),
+                width: 200,
+                height: 50,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.grey),
+                child: const Center(
+                  child: Text(
+                    "Rider Login",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 20), // Spacing between buttons
+            const SizedBox(height: 20),
             InkWell(
               onTap: () {
                 print("User Id ${userId}");
                 userId == 0
                     ? Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => BookingLogin()),
-                )
+                        context,
+                        MaterialPageRoute(builder: (context) => BookingLogin()),
+                      )
                     : Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeSearch()),
-                );
+                        context,
+                        MaterialPageRoute(builder: (context) => HomeSearch()),
+                      );
               },
               child: Container(
-                  width: 200,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.grey),
-                  child: Center(
-                    child: Text(
-                      "Store Login",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )),
+                width: 200,
+                height: 50,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.grey),
+                child: const Center(
+                  child: Text(
+                    "Store Login",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

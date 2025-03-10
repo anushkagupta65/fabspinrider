@@ -1,4 +1,5 @@
 import 'package:fabspinrider/booking/controller/booking_controller.dart';
+import 'package:fabspinrider/booking/screen/add_customer_screen.dart';
 import 'package:fabspinrider/booking/screen/after_splash.dart';
 import 'package:fabspinrider/screen/user_dashboard.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class HomeSearch extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
       ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -96,6 +98,30 @@ class HomeSearch extends StatelessWidget {
                 );
               }),
             ),
+            const SizedBox(height: 10),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Get.to(const AddCustomerScreen());
+                  },
+                  icon: const Icon(Icons.person_add, color: Colors.white),
+                  label: const Text("Add Customer",
+                      style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

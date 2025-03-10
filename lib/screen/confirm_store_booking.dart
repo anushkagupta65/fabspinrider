@@ -23,6 +23,8 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
   bool isLoading = true;
   int totalGarments = 0;
   int totalAddons = 0;
+  bool sameDayDelivery = false;
+  bool nextDayDelivery = false;
 
   Future<void> confirmLaundry() async {
     final url =
@@ -192,6 +194,8 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
                         const SizedBox(height: 10),
                         _summaryCard(),
                         const SizedBox(height: 15),
+                        _deliveryOptions(),
+                        const SizedBox(height: 15),
                         _confirmButton()
                       ],
                     ),
@@ -239,6 +243,33 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
   int _calculateTotalQuantity() {
     return bookingList.fold(
         0, (sum, item) => sum + ((item['quantity'] ?? 1) as num).toInt());
+  }
+
+  Widget _deliveryOptions() {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: const Text("Same Day Delivery"),
+          value: sameDayDelivery,
+          onChanged: (value) {
+            setState(() {
+              sameDayDelivery = value!;
+              nextDayDelivery = !value;
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text("Next Day Delivery"),
+          value: nextDayDelivery,
+          onChanged: (value) {
+            setState(() {
+              nextDayDelivery = value!;
+              sameDayDelivery = !value;
+            });
+          },
+        ),
+      ],
+    );
   }
 
   Widget _summaryRow(String title, String value) {

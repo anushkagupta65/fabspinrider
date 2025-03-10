@@ -52,7 +52,61 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : recentOrders.isEmpty
-              ? const Center(child: Text('No recent orders found'))
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${widget.userName}",
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              textStyle: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w500),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ClothesSearch(
+                                            userId: widget.userId,
+                                            userName: widget.userName,
+                                          )));
+                            },
+                            child: const Text('Book per pieces'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'No recent orders found',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               : Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
