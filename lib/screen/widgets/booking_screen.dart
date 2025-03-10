@@ -28,6 +28,9 @@ class _BookingScreenState extends State<BookingScreen> {
   BookingController controller = Get.put(BookingController());
   String selectedids = '0';
 
+  bool sameDayDelivery = false;
+  bool nextDayDelivery = false;
+
   @override
   void initState() {
     super.initState();
@@ -83,29 +86,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
     debugPrint("Request Body: $requestBody");
   }
-
-  // void setImageFile(int index, List<String> profilePicturePaths) {
-  //   setState(() {
-  //     if (imagePaths?[index] == null) {
-  //       imagePaths?[index] = profilePicturePaths;
-  //     } else {
-  //       imagePaths?[index]?.addAll(profilePicturePaths);
-  //     }
-  //   });
-  // }
-
-  // void deleteImageFile(int index, {String? imagePathToRemove}) {
-  //   setState(() {
-  //     if (imagePathToRemove != null) {
-  //       imagePaths?[index]?.remove(imagePathToRemove);
-  //       if (imagePaths?[index]?.isEmpty ?? true) {
-  //         imagePaths?.remove(index);
-  //       }
-  //     } else {
-  //       imagePaths?.remove(index);
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -212,13 +192,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                               controllers,
                                               currentPrices,
                                               counters);
-
-                                          // if (counters[index] > 1) {
-                                          //   controller.selectedStainIds[index] =
-                                          //       0;
-                                          //   controller
-                                          //       .selectedDefectIds[index] = 0;
-                                          // }
                                         });
                                       },
                                       child: const Icon(Icons.add,
@@ -511,87 +484,6 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                               ],
                             ),
-                            // Obx(() {
-                            //   final images = controller.imagePaths[index] ?? [];
-                            //   return images.isEmpty
-                            //       ? const SizedBox()
-                            //       : Column(
-                            //           crossAxisAlignment:
-                            //               CrossAxisAlignment.start,
-                            //           children: [
-                            //             const Padding(
-                            //               padding: EdgeInsets.only(
-                            //                   left: 8, right: 8, top: 10),
-                            //               child: Text(
-                            //                 "Uploaded Images:",
-                            //                 style: TextStyle(
-                            //                     color: Colors.black,
-                            //                     fontSize: 14),
-                            //               ),
-                            //             ),
-                            //             Padding(
-                            //               padding: const EdgeInsets.symmetric(
-                            //                   vertical: 8, horizontal: 8),
-                            //               child: SizedBox(
-                            //                 height: 76,
-                            //                 child: ListView.builder(
-                            //                   scrollDirection: Axis.horizontal,
-                            //                   shrinkWrap: true,
-                            //                   itemCount: images.length,
-                            //                   itemBuilder: (context, imgIndex) {
-                            //                     return Padding(
-                            //                       padding:
-                            //                           const EdgeInsets.only(
-                            //                               left: 6),
-                            //                       child: Stack(
-                            //                         children: [
-                            //                           ClipRRect(
-                            //                             borderRadius:
-                            //                                 BorderRadius
-                            //                                     .circular(5),
-                            //                             child: Image.file(
-                            //                               File(
-                            //                                   images[imgIndex]),
-                            //                               fit: BoxFit.cover,
-                            //                               width: 56,
-                            //                             ),
-                            //                           ),
-                            //                           Positioned(
-                            //                             top: 5,
-                            //                             right: 5,
-                            //                             child: GestureDetector(
-                            //                               onTap: () {
-                            //                                 controller
-                            //                                     .removeImageFromCloth(
-                            //                                   index,
-                            //                                   imagePathToRemove:
-                            //                                       images[
-                            //                                           imgIndex],
-                            //                                 );
-                            //                               },
-                            //                               child:
-                            //                                   const CircleAvatar(
-                            //                                 radius: 12,
-                            //                                 backgroundColor:
-                            //                                     Colors.red,
-                            //                                 child: Icon(
-                            //                                     Icons.close,
-                            //                                     size: 16,
-                            //                                     color: Colors
-                            //                                         .white),
-                            //                               ),
-                            //                             ),
-                            //                           ),
-                            //                         ],
-                            //                       ),
-                            //                     );
-                            //                   },
-                            //                 ),
-                            //               ),
-                            //             )
-                            //           ],
-                            //         );
-                            // }),
                             Obx(() {
                               if (index >= controller.remarks.length ||
                                   controller.remarks[index].isEmpty) {
@@ -647,6 +539,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   );
                 },
               ),
+              const SizedBox(height: 18),
+              _deliveryOptions(),
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () async {
@@ -708,6 +602,15 @@ class _BookingScreenState extends State<BookingScreen> {
                     );
                   }
 
+                  int? deliveryOption;
+                  if (sameDayDelivery) {
+                    deliveryOption = 1;
+                  } else if (nextDayDelivery) {
+                    deliveryOption = 2;
+                  } else {
+                    deliveryOption = null;
+                  }
+
                   await controller
                       .bookOrder(
                     context: context,
@@ -722,8 +625,8 @@ class _BookingScreenState extends State<BookingScreen> {
                     remarks: controller.remarks,
                     addonsname: controller.selectedAddonNames,
                     addonsprice: controller.selectedAddonPrices,
-                    itemImages: convertPathsToFiles(
-                        controller.imagePaths), // Convert here
+                    itemImages: convertPathsToFiles(controller.imagePaths),
+                    sameOrNextDay: deliveryOption,
                   )
                       .then((_) {
                     debugPrint(
@@ -747,6 +650,41 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _deliveryOptions() {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: const Text("Same Day Delivery"),
+          value: sameDayDelivery,
+          onChanged: (value) {
+            setState(() {
+              if (sameDayDelivery) {
+                sameDayDelivery = false;
+              } else {
+                sameDayDelivery = true;
+                nextDayDelivery = false;
+              }
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text("Next Day Delivery"),
+          value: nextDayDelivery,
+          onChanged: (value) {
+            setState(() {
+              if (nextDayDelivery) {
+                nextDayDelivery = false;
+              } else {
+                nextDayDelivery = true;
+                sameDayDelivery = false;
+              }
+            });
+          },
+        ),
+      ],
     );
   }
 }

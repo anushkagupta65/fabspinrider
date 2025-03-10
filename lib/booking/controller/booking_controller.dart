@@ -246,6 +246,7 @@ class BookingController extends GetxController {
     required Map<int, List<String>> addonsname,
     required Map<int, List<int>> addonsprice,
     required Map<int, List<File>> itemImages,
+    int? sameOrNextDay,
   }) async {
     final String url = "https://fabspin.org/api/create-laundry";
     final headers = {
@@ -258,6 +259,7 @@ class BookingController extends GetxController {
       ..fields.addAll({
         'store_id': storeId.toString(),
         'customer_id': customerId.toString(),
+        'same_or_next_day': sameOrNextDay?.toString() ?? '',
       });
 
     // Add fields (unchanged)
