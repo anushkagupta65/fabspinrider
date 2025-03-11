@@ -106,7 +106,9 @@ class HomeSearch extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Get.to(const AddCustomerScreen());
+                    Get.to(const AddCustomerScreen(
+                      calledFrom: "new-customer",
+                    ));
                   },
                   icon: const Icon(Icons.person_add, color: Colors.white),
                   label: const Text("Add Customer",

@@ -2,11 +2,17 @@ import 'package:fabspinrider/booking/screen/city_state.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddCustomerScreen extends StatefulWidget {
-  const AddCustomerScreen({super.key});
+  final String calledFrom;
+  final String? customerId;
+
+  const AddCustomerScreen({
+    super.key,
+    required this.calledFrom,
+    this.customerId,
+  });
 
   @override
   State<AddCustomerScreen> createState() => _AddCustomerScreenState();
@@ -24,9 +30,11 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
 
   int? selectedCityId;
   int? selectedStateId;
+  String? selectedTitle;
 
   List<City> cities = [];
   List<States> states = [];
+  List<String> titles = ['Mr.', 'Ms.', 'Mrs.'];
   bool isLoading = true;
   bool isSubmitting = false;
 
@@ -34,6 +42,51 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   void initState() {
     super.initState();
     fetchCitiesAndStates();
+    if (widget.calledFrom == "edit-customer") {
+      loadCustomerData();
+    }
+  }
+
+  Future<void> loadCustomerData() async {
+    if (widget.customerId == null) return;
+
+    final response = await http.get(
+      Uri.parse('https://fabspin.org/api/get-customer/${widget.customerId}'),
+      headers: {'Accept': 'application/json'},
+    );
+
+    debugPrint(
+        'Load Customer Data Status Code: ${response.statusCode}\n and this is customerid ${widget.customerId}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body)['data'];
+      setState(() {
+        selectedTitle = data['surname'] ?? '';
+        firstNameController.text = data['name'] ?? '';
+        lastNameController.text = data['lastname'] ?? '';
+        mobileController.text = data['mobile'] ?? '';
+        address1Controller.text = data['address']['address'] ?? '';
+        address2Controller.text = data['address']['address2'] ?? '';
+        zipController.text = data['address']['zip'] ?? '';
+        emailController.text = data['email'] ?? '';
+        gstController.text = data['customer_gst'] ?? '';
+        selectedCityId = data['address']['city_id'] is int
+            ? data['address']['city_id']
+            : int.tryParse(data['address']['city_id'].toString());
+        selectedStateId = data['address']['state_id'] is int
+            ? data['address']['state_id']
+            : int.tryParse(data['address']['state_id'].toString());
+        isLoading = false;
+      });
+    } else {
+      debugPrint('Error loading customer data: ${response.body}');
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error loading customer data")),
+      );
+    }
   }
 
   Future<void> fetchCitiesAndStates() async {
@@ -48,6 +101,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         headers: {'Accept': 'application/json'},
       );
 
+      debugPrint('Fetch States Status Code: ${stateResponse.statusCode}');
+      debugPrint('Fetch Cities Status Code: ${cityResponse.statusCode}');
+
       if (stateResponse.statusCode == 200 && cityResponse.statusCode == 200) {
         final stateJson = jsonDecode(stateResponse.body);
         final cityJson = jsonDecode(cityResponse.body);
@@ -60,17 +116,20 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
               .map((city) => City.fromJson(city))
               .toList();
 
-          selectedStateId = states.isNotEmpty ? states[0].id : null;
-          selectedCityId = cities.isNotEmpty ? cities[0].id : null;
+          selectedStateId = null;
+          selectedCityId = null;
           isLoading = false;
         });
       } else {
+        debugPrint(
+            'Error fetching states or cities: ${stateResponse.body}, ${cityResponse.body}');
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to load data")),
         );
       }
     } catch (e) {
+      debugPrint('Exception fetching states or cities: $e');
       setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error loading data: $e")),
@@ -81,7 +140,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   Future<void> submitCustomer() async {
     setState(() => isSubmitting = true);
 
-    final url = Uri.parse("https://fabspin.org/api/create-customer");
+    final url = Uri.parse(widget.calledFrom == "new-customer"
+        ? "https://fabspin.org/api/create-customer"
+        : "https://fabspin.org/api/update-customer/${widget.customerId}");
 
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -101,6 +162,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         body: jsonEncode({
           "store_id": storeId,
           "name": firstNameController.text,
+          "surname": selectedTitle,
           "lastname": lastNameController.text,
           "mobile": mobileController.text,
           "address": address1Controller.text,
@@ -113,13 +175,19 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         }),
       );
 
+      debugPrint('Submit Customer Status Code: ${response.statusCode}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Customer added successfully!")),
+          SnackBar(
+              content: Text(widget.calledFrom == "new-customer"
+                  ? "Customer added successfully!"
+                  : "Customer updated successfully!")),
         );
         Navigator.pop(context);
       } else {
         final responseData = jsonDecode(response.body);
+        debugPrint('Error submitting customer: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Failed: ${responseData['message'] ?? 'Try again'}"),
@@ -127,6 +195,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Exception submitting customer: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -158,10 +227,53 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
     );
   }
 
+  void _showDropdownDialog(
+      BuildContext context,
+      String label,
+      List<dynamic> items,
+      Function(dynamic) onChanged,
+      String Function(dynamic) displayText) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select $label'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ListTile(
+                  title: Text(displayText(item)),
+                  onTap: () {
+                    onChanged(item);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Customer Information")),
+      appBar: AppBar(
+        title: Text(widget.calledFrom == "new-customer"
+            ? "Customer Information Form"
+            : "Edit Customer Information"),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -170,6 +282,22 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 4),
+                    TextFormField(
+                      readOnly: true,
+                      onTap: () => _showDropdownDialog(
+                        context,
+                        "Title",
+                        titles,
+                        (value) => setState(() => selectedTitle = value),
+                        (title) => title,
+                      ),
+                      decoration: customInputDecoration("Title"),
+                      controller: TextEditingController(
+                        text: selectedTitle ?? '',
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     TextField(
                       controller: firstNameController,
                       decoration: customInputDecoration("First Name"),
@@ -196,26 +324,46 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       decoration: customInputDecoration("Address Line 2"),
                     ),
                     const SizedBox(height: 20),
-                    CustomDropdown<int>(
-                      label: "City",
-                      value: selectedCityId,
-                      items: cities,
-                      onChanged: (value) {
-                        setState(() => selectedCityId = value);
-                      },
-                      displayText: (city) => city.name,
-                      getValue: (city) => city.id,
+                    TextFormField(
+                      readOnly: true,
+                      onTap: () => _showDropdownDialog(
+                        context,
+                        "City",
+                        cities,
+                        (value) => setState(() => selectedCityId = value.id),
+                        (city) => city.name,
+                      ),
+                      decoration: customInputDecoration("City"),
+                      controller: TextEditingController(
+                        text: selectedCityId != null
+                            ? cities
+                                .firstWhere((city) => city.id == selectedCityId)
+                                .name
+                            : '',
+                      ),
                     ),
                     const SizedBox(height: 20),
-                    CustomDropdown<int>(
-                      label: "State",
-                      value: selectedStateId,
-                      items: states,
-                      onChanged: (value) {
-                        setState(() => selectedStateId = value);
-                      },
-                      displayText: (state) => state.name,
-                      getValue: (state) => state.id,
+                    TextFormField(
+                      readOnly: true,
+                      onTap: () => _showDropdownDialog(
+                        context,
+                        "State",
+                        states,
+                        (value) => setState(() => selectedStateId = value.id),
+                        (state) => state.name,
+                      ),
+                      decoration: customInputDecoration("State"),
+                      controller: TextEditingController(
+                        text: selectedStateId != null
+                            ? states
+                                .firstWhere(
+                                  (state) => state.id == selectedStateId,
+                                  orElse: () =>
+                                      States(id: -1, name: ''), // Default value
+                                )
+                                .name
+                            : '',
+                      ),
                     ),
                     const SizedBox(height: 20),
                     TextField(
