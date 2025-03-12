@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/NotificationService.dart';
 
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,9 +16,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   bool isLogin = false;
-
 
   @override
   void initState() {
@@ -27,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
     //_checkLoginStatus();
     login();
-
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
@@ -39,22 +35,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Request permissions for iOS
     //_firebaseMessaging.requestPermission();
-
-
-
   }
 
-  void login() async{
+  void login() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id');
     if (userId != null) {
-
-      Get.offAll(() =>HomeScreen());
+      Get.offAll(() => HomeScreen());
     } else {
       // User is not logged in
-      Get.offAll(() =>LoginScreen());
+      Get.offAll(() => LoginScreen());
     }
-
   }
   // _promo()async{
   //   SharedPreferences pref = await SharedPreferences.getInstance();
@@ -105,8 +96,6 @@ class _SplashScreenState extends State<SplashScreen> {
   //   }
   // }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,12 +104,11 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/icon/splash.png", width: double.infinity, height: 400,)
-            // Image.network(
-            //   Urls.splashLogo,
-            //   width: 300,
-            //   height: 300,
-            // ),
+            Image.asset(
+              "assets/icon/splash.png",
+              width: double.infinity,
+              height: 400,
+            )
           ],
         ),
       ),

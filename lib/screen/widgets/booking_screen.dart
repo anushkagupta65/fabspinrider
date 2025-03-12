@@ -243,14 +243,18 @@ class _BookingScreenState extends State<BookingScreen> {
                                 InkWell(
                                   onTap: counters[index] > 1
                                       ? () {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  "This option is disabled when quantity > 1"),
-                                              duration: Duration(seconds: 2),
-                                            ),
+                                          Get.snackbar(
+                                            "Error",
+                                            "This option is disabled when quantity is more than 1",
                                           );
+                                          // ScaffoldMessenger.of(context)
+                                          //     .showSnackBar(
+                                          //   const SnackBar(
+                                          //     content: Text(
+                                          //         "This option is disabled when quantity > 1"),
+                                          //     duration: Duration(seconds: 2),
+                                          //   ),
+                                          // );
                                         }
                                       : () {
                                           BookingScreenHelpers.showStainDialog(
@@ -368,14 +372,18 @@ class _BookingScreenState extends State<BookingScreen> {
                                 InkWell(
                                   onTap: counters[index] > 1
                                       ? () {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  "This option is disabled when quantity is more than 1"),
-                                              duration: Duration(seconds: 2),
-                                            ),
+                                          Get.snackbar(
+                                            "Error",
+                                            "This option is disabled when quantity is more than 1",
                                           );
+                                          // ScaffoldMessenger.of(context)
+                                          //     .showSnackBar(
+                                          //   const SnackBar(
+                                          //     content: Text(
+                                          //         "This option is disabled when quantity > 1"),
+                                          //     duration: Duration(seconds: 2),
+                                          //   ),
+                                          // );
                                         }
                                       : () {
                                           BookingScreenHelpers

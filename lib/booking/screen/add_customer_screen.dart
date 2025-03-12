@@ -1,5 +1,7 @@
 import 'package:fabspinrider/booking/screen/city_state.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +30,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController gstController = TextEditingController();
 
+  String selectedCityName = "";
+  String selectedStateName = "";
   int? selectedCityId;
   int? selectedStateId;
   String? selectedTitle;
@@ -42,8 +46,11 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   void initState() {
     super.initState();
     fetchCitiesAndStates();
+
     if (widget.calledFrom == "edit-customer") {
       loadCustomerData();
+    } else {
+      setState(() => isLoading = false);
     }
   }
 
@@ -55,11 +62,10 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       headers: {'Accept': 'application/json'},
     );
 
-    debugPrint(
-        'Load Customer Data Status Code: ${response.statusCode}\n and this is customerid ${widget.customerId}');
-
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body)['data'];
+      final responseData = jsonDecode(response.body);
+      final data = responseData['data'];
+
       setState(() {
         selectedTitle = data['surname'] ?? '';
         firstNameController.text = data['name'] ?? '';
@@ -70,75 +76,131 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         zipController.text = data['address']['zip'] ?? '';
         emailController.text = data['email'] ?? '';
         gstController.text = data['customer_gst'] ?? '';
-        selectedCityId = data['address']['city_id'] is int
-            ? data['address']['city_id']
-            : int.tryParse(data['address']['city_id'].toString());
-        selectedStateId = data['address']['state_id'] is int
-            ? data['address']['state_id']
-            : int.tryParse(data['address']['state_id'].toString());
+        selectedCityId = int.tryParse(data['address']['city_id'].toString());
+        selectedStateId = int.tryParse(data['address']['state_id'].toString());
         isLoading = false;
       });
+
+      if (cities.isEmpty || states.isEmpty) {
+        await fetchCitiesAndStates();
+      }
+
+      updateCityAndStateNames();
     } else {
-      debugPrint('Error loading customer data: ${response.body}');
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error loading customer data")),
-      );
+      setState(() => isLoading = false);
+      Get.snackbar("Error", "Error loading customer data");
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text("Error loading customer data")),
+      // );
     }
   }
 
   Future<void> fetchCitiesAndStates() async {
+    try {
+      final cityResponse = await http.get(
+        Uri.parse('https://fabspin.org/api/get-cities'),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (cityResponse.statusCode == 200) {
+        final cityJson = jsonDecode(cityResponse.body);
+        setState(() {
+          cities = (cityJson['data'] as List)
+              .map((city) => City.fromJson(city))
+              .toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Exception fetching cities: $e');
+    }
+
     try {
       final stateResponse = await http.get(
         Uri.parse('https://fabspin.org/api/get-states'),
         headers: {'Accept': 'application/json'},
       );
 
-      final cityResponse = await http.get(
-        Uri.parse('https://fabspin.org/api/get-cities'),
-        headers: {'Accept': 'application/json'},
-      );
-
-      debugPrint('Fetch States Status Code: ${stateResponse.statusCode}');
-      debugPrint('Fetch Cities Status Code: ${cityResponse.statusCode}');
-
-      if (stateResponse.statusCode == 200 && cityResponse.statusCode == 200) {
+      if (stateResponse.statusCode == 200) {
         final stateJson = jsonDecode(stateResponse.body);
-        final cityJson = jsonDecode(cityResponse.body);
-
         setState(() {
           states = (stateJson['data'] as List)
               .map((state) => States.fromJson(state))
               .toList();
-          cities = (cityJson['data'] as List)
-              .map((city) => City.fromJson(city))
-              .toList();
-
-          selectedStateId = null;
-          selectedCityId = null;
-          isLoading = false;
         });
-      } else {
-        debugPrint(
-            'Error fetching states or cities: ${stateResponse.body}, ${cityResponse.body}');
-        setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to load data")),
-        );
       }
     } catch (e) {
-      debugPrint('Exception fetching states or cities: $e');
+      debugPrint('Exception fetching states: $e');
+    }
+
+    updateCityAndStateNames();
+
+    // Stop loading only if we are adding a new customer
+    if (widget.calledFrom == "new-customer") {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error loading data: $e")),
-      );
     }
   }
 
-  Future<void> submitCustomer() async {
+  void submitCustomer() async {
     setState(() => isSubmitting = true);
+
+    // Validation
+    if (firstNameController.text.isEmpty) {
+      Get.snackbar("Error", "Please enter your first name");
+      setState(() => isSubmitting = false);
+      return;
+    } else if (firstNameController.text.length < 4) {
+      Get.snackbar("Error", "First name must be at least 4 characters long");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    if (mobileController.text.isEmpty) {
+      Get.snackbar("Error", "Please enter your mobile number");
+      setState(() => isSubmitting = false);
+      return;
+    } else if (mobileController.text.length != 10) {
+      Get.snackbar("Error", "Mobile number must be exactly 10 digits long");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    if (address1Controller.text.isEmpty) {
+      Get.snackbar("Error", "Please enter your address");
+      setState(() => isSubmitting = false);
+      return;
+    } else if (address1Controller.text.length < 5) {
+      Get.snackbar("Error", "Address must be at least 5 characters long");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    if (zipController.text.isEmpty) {
+      Get.snackbar("Error", "Please enter the zip code");
+      setState(() => isSubmitting = false);
+      return;
+    } else if (zipController.text.length != 6) {
+      Get.snackbar("Error", "Zip code must be 6 characters long");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    if (selectedCityId == null) {
+      Get.snackbar("Error", "Please select a city");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    if (selectedStateId == null) {
+      Get.snackbar("Error", "Please select a state");
+      setState(() => isSubmitting = false);
+      return;
+    }
+
+    // if (zipController.text.isEmpty) {
+    //   Get.snackbar("Error", "Please enter the zip code");
+    //   setState(() => isSubmitting = false);
+    //   return;
+    // }
 
     final url = Uri.parse(widget.calledFrom == "new-customer"
         ? "https://fabspin.org/api/create-customer"
@@ -149,7 +211,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       final storeId = prefs.getInt('StoreId');
 
       if (storeId == null) {
-        debugPrint("Store ID is null");
+        Get.snackbar("Error", "Store ID is missing");
+        setState(() => isSubmitting = false);
         return;
       }
 
@@ -175,29 +238,32 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         }),
       );
 
-      debugPrint('Submit Customer Status Code: ${response.statusCode}');
+      final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(widget.calledFrom == "new-customer"
-                  ? "Customer added successfully!"
-                  : "Customer updated successfully!")),
+        Get.snackbar(
+          "Success",
+          widget.calledFrom == "new-customer"
+              ? "Customer added successfully!"
+              : "Customer updated successfully!",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
-        final responseData = jsonDecode(response.body);
-        debugPrint('Error submitting customer: ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed: ${responseData['message'] ?? 'Try again'}"),
-          ),
+        Get.snackbar(
+          "Error",
+          "Failed: ${responseData['message'] ?? 'Try again'}",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
         );
       }
     } catch (e) {
-      debugPrint('Exception submitting customer: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+      Get.snackbar(
+        "Error",
+        "Error: $e",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
       );
     } finally {
       setState(() => isSubmitting = false);
@@ -225,6 +291,26 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
       contentPadding:
           const EdgeInsets.symmetric(vertical: 16.0, horizontal: 14.0),
     );
+  }
+
+  void updateCityAndStateNames() {
+    if (selectedCityId != null) {
+      final city = cities.firstWhere(
+        (city) => city.id == selectedCityId,
+        orElse: () => City(id: -1, name: 'Not Found'),
+      );
+      selectedCityName = city.name;
+    }
+
+    if (selectedStateId != null) {
+      final state = states.firstWhere(
+        (state) => state.id == selectedStateId,
+        orElse: () => States(id: -1, name: 'Not Found'),
+      );
+      selectedStateName = state.name;
+    }
+
+    setState(() {});
   }
 
   void _showDropdownDialog(
@@ -300,7 +386,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                     const SizedBox(height: 20),
                     TextField(
                       controller: firstNameController,
-                      decoration: customInputDecoration("First Name"),
+                      decoration: customInputDecoration("First Name*"),
                     ),
                     const SizedBox(height: 20),
                     TextField(
@@ -311,12 +397,12 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                     TextField(
                       controller: mobileController,
                       keyboardType: TextInputType.phone,
-                      decoration: customInputDecoration("Mobile No"),
+                      decoration: customInputDecoration("Mobile No*"),
                     ),
                     const SizedBox(height: 20),
                     TextField(
                       controller: address1Controller,
-                      decoration: customInputDecoration("Address Line 1"),
+                      decoration: customInputDecoration("Address Line 1*"),
                     ),
                     const SizedBox(height: 20),
                     TextField(
@@ -328,48 +414,43 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                       readOnly: true,
                       onTap: () => _showDropdownDialog(
                         context,
-                        "City",
+                        "City*",
                         cities,
-                        (value) => setState(() => selectedCityId = value.id),
+                        (value) {
+                          setState(() {
+                            selectedCityId = value.id;
+                            selectedCityName = value.name;
+                          });
+                        },
                         (city) => city.name,
                       ),
-                      decoration: customInputDecoration("City"),
-                      controller: TextEditingController(
-                        text: selectedCityId != null
-                            ? cities
-                                .firstWhere((city) => city.id == selectedCityId)
-                                .name
-                            : '',
-                      ),
+                      decoration: customInputDecoration("City*"),
+                      controller: TextEditingController(text: selectedCityName),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
                       readOnly: true,
                       onTap: () => _showDropdownDialog(
                         context,
-                        "State",
+                        "State*",
                         states,
-                        (value) => setState(() => selectedStateId = value.id),
+                        (value) {
+                          setState(() {
+                            selectedStateId = value.id;
+                            selectedStateName = value.name;
+                          });
+                        },
                         (state) => state.name,
                       ),
-                      decoration: customInputDecoration("State"),
-                      controller: TextEditingController(
-                        text: selectedStateId != null
-                            ? states
-                                .firstWhere(
-                                  (state) => state.id == selectedStateId,
-                                  orElse: () =>
-                                      States(id: -1, name: ''), // Default value
-                                )
-                                .name
-                            : '',
-                      ),
+                      decoration: customInputDecoration("State*"),
+                      controller:
+                          TextEditingController(text: selectedStateName),
                     ),
                     const SizedBox(height: 20),
                     TextField(
                       controller: zipController,
                       keyboardType: TextInputType.number,
-                      decoration: customInputDecoration("Zip"),
+                      decoration: customInputDecoration("Zip*"),
                     ),
                     const SizedBox(height: 20),
                     TextField(

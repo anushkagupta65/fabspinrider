@@ -19,7 +19,6 @@ class RiderController extends GetxController {
   var pickCount = ''.obs;
   var dropCount = ''.obs;
 
-
   var pickupAddress = ''.obs;
   var deliverAddress = ''.obs;
   var storeCode = ''.obs;
@@ -28,42 +27,38 @@ class RiderController extends GetxController {
   var pickupTime = ''.obs;
   var customerName = ''.obs;
   var customerMobile = ''.obs;
-  RxList<Map<String, dynamic>> pickupDropDataList = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> pickupDropDataList =
+      <Map<String, dynamic>>[].obs;
   RxInt dataLength = 0.obs; // To store the length of the data
   RxList<PickupDrop> orders = <PickupDrop>[].obs;
   RxList<PickupDrop> filteredOrders = <PickupDrop>[].obs;
   var totalClothes = 0.obs;
   var selectedTab = 'New Orders'.obs;
 
-
   @override
   void onInit() {
     super.onInit();
     getUser();
   }
-  
-  
-  Future<void> updateFcm(String userId, String fcm)async{
+
+  Future<void> updateFcm(String userId, String fcm) async {
     final url = Uri.parse('https://fabspin.org/api/update-rider-fcm/$userId');
     print(url);
     print(userId);
     print("My FCM $fcm");
-    final response = await http.post(url, body: {
-      'fcm': fcm
-    });
+    final response = await http.post(url, body: {'fcm': fcm});
 
-    if(response.statusCode == 200){
+    if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       print(responseData);
-    }else{
+    } else {
       print('Error Updating Fcm');
     }
-
   }
 
-
   Future<void> updatePickup(String orderId) async {
-    final url = Uri.parse('https://fabspin.org/api/update-pickup-drops/$orderId');
+    final url =
+        Uri.parse('https://fabspin.org/api/update-pickup-drops/$orderId');
     print(url);
 
     // Prepare the request body
@@ -92,15 +87,15 @@ class RiderController extends GetxController {
       print("Pickup updated successfully!");
     } else {
       print("Error updating pickup: ${response.statusCode}");
-      print("Response body: ${response.body}"); // Log the response body to check for server-side error messages
+      print(
+          "Response body: ${response.body}"); // Log the response body to check for server-side error messages
     }
   }
 
-
-
   Future<void> denyOrder(String orderId, String status) async {
     print(status);
-    final url = Uri.parse('https://fabspin.org/api/update-pickup-drops/$orderId');
+    final url =
+        Uri.parse('https://fabspin.org/api/update-pickup-drops/$orderId');
 
     // Prepare the request body
     Map<String, String> body = {
@@ -108,7 +103,6 @@ class RiderController extends GetxController {
     };
 
     // Add total_clothes only when selectedTab is 0
-
 
     // Debugging: Print the body and selectedTab value
     print('selectedTab.value: ${selectedTab.value}');
@@ -125,11 +119,10 @@ class RiderController extends GetxController {
       print("Cancelled successfully!");
     } else {
       print("Error Cancelled pickup: ${response.statusCode}");
-      print("Response body: ${response.body}"); // Log the response body to check for server-side error messages
+      print(
+          "Response body: ${response.body}"); // Log the response body to check for server-side error messages
     }
   }
-
-
 
   // Counter logic
   void incrementClothes() {
@@ -140,30 +133,30 @@ class RiderController extends GetxController {
     if (totalClothes > 0) totalClothes--;
   }
 
-
-
   // Method to update selected tab and filter orders
   void updateSelectedTab(String tab) {
     selectedTab.value = tab;
     filterOrdersByTab(tab);
   }
 
-
   void filterOrdersByTab(String tab) {
     if (tab == 'New Orders') {
-      filteredOrders.value = orders.where((order) => order.status == 'Pending').toList();
+      filteredOrders.value =
+          orders.where((order) => order.status == 'Pending').toList();
     } else if (tab == 'Accepted') {
-      filteredOrders.value = orders.where((order) => order.status == 'Accepted').toList();
+      filteredOrders.value =
+          orders.where((order) => order.status == 'Accepted').toList();
     } else if (tab == 'Picked Up') {
-      filteredOrders.value = orders.where((order) => order.status == 'Picked Up').toList();
-    }else if (tab == 'Deny') {
-      filteredOrders.value = orders.where((order) => order.status == 'Canceled').toList();
+      filteredOrders.value =
+          orders.where((order) => order.status == 'Picked Up').toList();
+    } else if (tab == 'Deny') {
+      filteredOrders.value =
+          orders.where((order) => order.status == 'Canceled').toList();
     } else {
-      filteredOrders.value = orders; // Show all orders if no specific tab is selected
+      filteredOrders.value =
+          orders; // Show all orders if no specific tab is selected
     }
   }
-
-
 
   // Method to register the user
   Future<void> registerUser() async {
@@ -191,17 +184,20 @@ class RiderController extends GetxController {
         );
         Get.offAll(() => HomeScreen());
       } else {
-        Get.snackbar('Error', 'Enter Correct User Id, Password', colorText: CupertinoColors.white,
-            snackPosition: SnackPosition.TOP);
+        Get.snackbar(
+          'Error',
+          'Enter Correct User Id, Password',
+          colorText: CupertinoColors.white,
+        );
       }
     } else {
-      Get.snackbar('Error', 'An error occurred. Please try again later.',
-          snackPosition: SnackPosition.TOP);
+      Get.snackbar(
+        'Error',
+        'An error occurred. Please try again later.',
+      );
     }
     isLoading.value = false;
   }
-
-
 
   Future<void> getPickupDropListData(int riderId) async {
     final url = Uri.parse('https://fabspin.org/api/pickup-drop-list/$riderId');
@@ -213,7 +209,8 @@ class RiderController extends GetxController {
         final responseData = jsonDecode(response.body);
         print('Response body: $responseData');
 
-        if (responseData['Status'] == 'Success' && responseData['data'] is List) {
+        if (responseData['Status'] == 'Success' &&
+            responseData['data'] is List) {
           orders.value = (responseData['data'] as List)
               .map((entry) => PickupDrop.fromJson(entry))
               .toList()
@@ -230,23 +227,15 @@ class RiderController extends GetxController {
     }
   }
 
-
-
-
-
-
-
-
-
   // Save user details in SharedPreferences
-  Future<void> _saveUserId(int userId, String mobile, String name, String store, String email) async {
+  Future<void> _saveUserId(int userId, String mobile, String name, String store,
+      String email) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('user_id', userId);
     await prefs.setString('mobile', mobile);
     await prefs.setString('name', name);
     await prefs.setString('store', store);
     await prefs.setString('email', email);
-
   }
 
   // Form validation
@@ -259,7 +248,6 @@ class RiderController extends GetxController {
       registerUser();
     }
   }
-
 
   Future<void> getRiderHomeData(int riderId) async {
     final url = Uri.parse('https://fabspin.org/api/rider-home/$riderId');
@@ -276,7 +264,6 @@ class RiderController extends GetxController {
         dropCount.value = responseData['drop_count'].toString();
         print(pickCount.value);
         print(dropCount.value);
-
       } else {
         // Handle other status codes
         print('Failed to load data: ${response.statusCode}');
@@ -288,9 +275,6 @@ class RiderController extends GetxController {
       return null;
     }
   }
-
-
-
 
   void getUser() async {
     SharedPreferences pref = await SharedPreferences.getInstance();

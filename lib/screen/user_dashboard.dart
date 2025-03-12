@@ -14,6 +14,7 @@ class UserDashboardScreen extends StatefulWidget {
     required this.userId,
     required this.userName,
   });
+
   @override
   State<UserDashboardScreen> createState() => _UserDashboardScreenState();
 }
@@ -29,19 +30,19 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   Future<void> fetchUserData() async {
+    setState(() => isLoading = true);
+
     final response = await http.get(
         Uri.parse('https://fabspin.org/api/customer-order/${widget.userId}'));
+
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
         recentOrders = data['data'].toList();
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
       });
     }
+
+    setState(() => isLoading = false);
   }
 
   @override
@@ -52,9 +53,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         centerTitle: true,
         actions: [
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'edit_customer') {
-                Navigator.push(
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddCustomerScreen(
@@ -63,6 +64,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     ),
                   ),
                 );
+
+                if (result == true) {
+                  // If data was updated
+                  fetchUserData(); // Fetch latest data
+                }
               }
             },
             itemBuilder: (BuildContext context) {
@@ -78,27 +84,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  _buildHeader(),
-                  const SizedBox(height: 18),
-                  recentOrders.isEmpty
-                      ? const Expanded(
-                          child: Center(
-                            child: Text(
-                              'No recent orders found',
-                              style: TextStyle(
-                                fontSize: 16,
+          : RefreshIndicator(
+              onRefresh: fetchUserData, // Allow pull-to-refresh
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    _buildHeader(),
+                    const SizedBox(height: 18),
+                    recentOrders.isEmpty
+                        ? const Expanded(
+                            child: Center(
+                              child: Text(
+                                'No recent orders found',
+                                style: TextStyle(fontSize: 16),
                               ),
                             ),
-                          ),
-                        )
-                      : _buildRecentOrdersList(),
-                ],
+                          )
+                        : _buildRecentOrdersList(),
+                  ],
+                ),
               ),
             ),
     );
@@ -109,7 +116,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          "${widget.userName}",
+          widget.userName,
           style: const TextStyle(
             fontSize: 36,
             fontWeight: FontWeight.w700,
@@ -128,12 +135,14 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           ),
           onPressed: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ClothesSearch(
-                          userId: widget.userId,
-                          userName: widget.userName,
-                        )));
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClothesSearch(
+                  userId: widget.userId,
+                  userName: widget.userName,
+                ),
+              ),
+            );
           },
           child: const Text('Book per pieces'),
         ),

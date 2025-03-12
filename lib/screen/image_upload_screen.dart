@@ -1,6 +1,7 @@
 import 'package:fabspinrider/booking/screen/home_search.dart';
 import 'package:fabspinrider/widgets/image_picker_cropper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
@@ -111,13 +112,19 @@ class _BarcodeScreenState extends State<BarcodeScreen> {
 
       if (response.statusCode == 200) {
         print(await response.stream.bytesToString());
-        // Show SnackBar on successful upload
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Image uploaded successfully!'),
-            duration: Duration(seconds: 2),
-          ),
+        Get.snackbar(
+          "Success",
+          'Image uploaded successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
         );
+
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(
+        //     content: Text('Image uploaded successfully!'),
+        //     duration: Duration(seconds: 2),
+        //   ),
+        // );
       } else {
         print('Failed to upload image: ${response.reasonPhrase}');
       }
@@ -196,7 +203,7 @@ class _BarcodeScreenState extends State<BarcodeScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(type.capitalize()),
+        Text(type.capitalizing()),
       ],
     );
   }
@@ -287,7 +294,7 @@ class _BarcodeScreenState extends State<BarcodeScreen> {
 }
 
 extension StringExtension on String {
-  String capitalize() {
+  String capitalizing() {
     return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
