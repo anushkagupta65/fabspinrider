@@ -125,9 +125,51 @@ class _BookingScreenState extends State<BookingScreen> {
                                   child: Text(
                                     "${item['cloth_name']}",
                                     style: const TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 24,
                                         fontWeight: FontWeight.bold),
                                   ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.selectedClothes.insert(
+                                              index + 1,
+                                              Map.from(widget
+                                                  .selectedClothes[index]));
+                                        });
+                                      },
+                                      icon: const CircleAvatar(
+                                        backgroundColor: Colors.black87,
+                                        radius: 14,
+                                        child: Icon(
+                                          Icons.content_copy,
+                                          color: Colors.white,
+                                          size: 17,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.selectedClothes
+                                              .removeAt(index);
+                                        });
+                                      },
+                                      icon: const CircleAvatar(
+                                        backgroundColor: Colors.black87,
+                                        radius: 14,
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -137,7 +179,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                 Text(
                                     "Price per item: ₹${currentPrices[index].floor()}",
                                     style:
-                                        Theme.of(context).textTheme.bodyMedium),
+                                        Theme.of(context).textTheme.bodyLarge),
                               ],
                             ),
                             const SizedBox(height: 22),
@@ -155,11 +197,11 @@ class _BookingScreenState extends State<BookingScreen> {
                                         if (counters[index] > 1) {
                                           setState(() {
                                             counters[index]--;
-                                            BookingScreenHelpers.updatePrice(
-                                                index,
-                                                controllers,
-                                                currentPrices,
-                                                counters);
+                                            // BookingScreenHelpers.updatePrice(
+                                            //     index,
+                                            //     controllers,
+                                            //     currentPrices,
+                                            //     counters);
                                           });
                                         }
                                       },
@@ -187,11 +229,11 @@ class _BookingScreenState extends State<BookingScreen> {
                                         setState(() {
                                           counters[index]++;
 
-                                          BookingScreenHelpers.updatePrice(
-                                              index,
-                                              controllers,
-                                              currentPrices,
-                                              counters);
+                                          // BookingScreenHelpers.updatePrice(
+                                          //     index,
+                                          //     controllers,
+                                          //     currentPrices,
+                                          //     counters);
                                         });
                                       },
                                       child: const Icon(Icons.add,
@@ -548,7 +590,10 @@ class _BookingScreenState extends State<BookingScreen> {
                 },
               ),
               const SizedBox(height: 18),
-              _deliveryOptions(),
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: _deliveryOptions(),
+              ),
               const SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () async {

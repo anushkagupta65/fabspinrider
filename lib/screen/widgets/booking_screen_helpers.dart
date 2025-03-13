@@ -292,11 +292,11 @@ class BookingScreenHelpers {
     }
   }
 
-  static void updatePrice(int index, List<TextEditingController> controllers,
-      List<num> currentPrices, List<int> counters) {
-    controllers[index].text =
-        (currentPrices[index] * counters[index]).toString();
-  }
+  // static void updatePrice(int index, List<TextEditingController> controllers,
+  //     List<num> currentPrices, List<int> counters) {
+  //   controllers[index].text =
+  //       (currentPrices[index] * counters[index]).toString();
+  // }
 
   static void onPriceChanged(int index, String value, List<num> currentPrices,
       List<int> counters, Function setStateCallback) {
