@@ -7,20 +7,35 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../controller/booking_controller.dart';
 
-class AfterSplash extends StatelessWidget {
-  AfterSplash({super.key});
-  final BookingController controller = Get.put(BookingController());
-  late var userId;
-  late var userIdRider;
+class AfterSplash extends StatefulWidget {
+  const AfterSplash({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final prefs = await SharedPreferences.getInstance();
+  State<AfterSplash> createState() => _AfterSplashState();
+}
+
+class _AfterSplashState extends State<AfterSplash> {
+  final BookingController controller = Get.put(BookingController());
+
+  int userId = 0;
+  int userIdRider = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
       userId = prefs.getInt('UserId') ?? 0;
       userIdRider = prefs.getInt('user_id') ?? 0;
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
@@ -29,7 +44,7 @@ class AfterSplash extends StatelessWidget {
           children: [
             InkWell(
               onTap: () {
-                print("Rider Usr id: $userIdRider");
+                print("Rider User id: $userIdRider");
                 userIdRider != 0
                     ? Navigator.push(
                         context,

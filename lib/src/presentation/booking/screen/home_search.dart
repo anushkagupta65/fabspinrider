@@ -1,6 +1,7 @@
 import 'package:fabspinrider/src/controller/booking_controller.dart';
 import 'package:fabspinrider/src/presentation/booking/screen/add_customer_screen.dart';
 import 'package:fabspinrider/src/presentation/booking/screen/after_splash.dart';
+import 'package:fabspinrider/src/presentation/order_report/order_report.dart';
 import 'package:fabspinrider/src/presentation/screen/user_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -157,9 +158,7 @@ class HomeSearch extends StatelessWidget {
                   ),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Get.to(const AddCustomerScreen(
-                      //   calledFrom: "new-customer",
-                      // ));
+                      Get.to(BarcodeSearchScreen());
                     },
                     icon: const Icon(
                       Icons.image,

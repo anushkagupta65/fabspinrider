@@ -1,6 +1,5 @@
 import 'package:fabspinrider/src/presentation/booking/screen/add_customer_screen.dart';
 import 'package:fabspinrider/src/presentation/screen/clothes_search.dart';
-import 'package:fabspinrider/src/presentation/widgets/image_picker_cropper.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -185,28 +184,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         color: Colors.red, fontWeight: FontWeight.w600),
                   ),
                 ],
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.camera_alt, color: Colors.blue),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return ImagePickerCropper(
-                        imagePath: (String? path) {
-                          if (path != null) {
-                            print('Selected image path: $path');
-                            // Call your uploadImage function if needed
-                          }
-                        },
-                        deleteImage: () {},
-                        showDelete: false,
-                        isCropperRequired: true,
-                        removeDeleteOption: true,
-                      );
-                    },
-                  );
-                },
               ),
             ),
           );

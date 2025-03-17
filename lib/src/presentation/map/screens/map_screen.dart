@@ -1,11 +1,8 @@
 import 'dart:ui' as ui;
-
 import 'package:fabspinrider/src/model/order.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import '../../screen/widgets/order_card.dart';
 import '../widgets/bottom_container.dart';
 
 class MapScreen extends StatelessWidget {
@@ -14,15 +11,13 @@ class MapScreen extends StatelessWidget {
 
   MapScreen({super.key, required this.order});
 
-  final LatLng latLng =
-      LatLng(28.704060, 77.102493); // Fixed starting coordinates
-  final LatLng destination =
-      LatLng(29.602100, 77.363700); // Fixed destination coordinates
+  final LatLng latLng = const LatLng(28.704060, 77.102493);
+  final LatLng destination = const LatLng(29.602100, 77.363700);
   final List<LatLng> polylineCoordinates = [
-    LatLng(28.704060, 77.102493),
-    LatLng(28.704060, 77.102493),
-    LatLng(29.602100, 77.363700),
-  ]; // Sample polyline
+    const LatLng(28.704060, 77.102493),
+    const LatLng(28.704060, 77.102493),
+    const LatLng(29.602100, 77.363700),
+  ];
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
     ByteData data = await rootBundle.load(path);
@@ -76,8 +71,8 @@ class MapScreen extends StatelessWidget {
                   right: 20,
                   child: BottomContainer(
                     order: order,
-                    pickUpHandler: () {}, // Static handler
-                    deliverHandler: () {}, // Static handler
+                    pickUpHandler: () {},
+                    deliverHandler: () {},
                   ),
                 ),
                 Positioned(
