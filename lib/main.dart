@@ -1,6 +1,6 @@
-import 'package:fabspinrider/booking/screen/after_splash.dart';
-import 'package:fabspinrider/controller/controller.dart';
-import 'package:fabspinrider/widgets/NotificationService.dart';
+import 'package:fabspinrider/src/presentation/booking/screen/after_splash.dart';
+import 'package:fabspinrider/src/controller/rider_controller.dart';
+import 'package:fabspinrider/src/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
