@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:fabspinrider/src/presentation/widgets/image_picker_cropper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class BarcodeSearchScreen extends StatefulWidget {
@@ -35,7 +37,7 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
       final decodedResponse = jsonDecode(responseBody);
-
+      print("============= booking response: $decodedResponse");
       if (response.statusCode == 200 && decodedResponse['success'] == true) {
         setState(() {
           barcodeData = decodedResponse['data'];
@@ -147,10 +149,10 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
 
   Widget _buildItemCard(dynamic item, int index) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Card(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
-        elevation: 2,
+        elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         shadowColor: Colors.grey.shade300,
         child: Padding(
@@ -166,29 +168,38 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
               ),
               const SizedBox(height: 10),
               _buildImageSection(
-                title: "Cloth",
+                title: "Cloth :-",
                 imageKey: 'booking_image',
-                onCamTap: () {},
-                onGalTap: () {},
-                onViewTap: () {},
+                bookingId: '${item['id']}',
+                onViewTap: () {
+                  Get.to(FullScreenImage(
+                      imageUrl:
+                          "https://fabspin.org/public/${item['booking_image']}"));
+                },
                 item: item,
               ),
               const SizedBox(height: 10),
               _buildImageSection(
-                title: "Stain",
+                title: "Stain :-",
                 imageKey: 'stain_images',
-                onCamTap: () {},
-                onGalTap: () {},
-                onViewTap: () {},
+                bookingId: '${item['id']}',
+                onViewTap: () {
+                  Get.to(FullScreenImage(
+                      imageUrl:
+                          "https://fabspin.org/public/${item['stain_images']}"));
+                },
                 item: item,
               ),
               const SizedBox(height: 10),
               _buildImageSection(
-                title: "Defect",
+                title: "Defect :-",
                 imageKey: 'defect_images',
-                onCamTap: () {},
-                onGalTap: () {},
-                onViewTap: () {},
+                bookingId: '${item['id']}',
+                onViewTap: () {
+                  Get.to(FullScreenImage(
+                      imageUrl:
+                          "https://fabspin.org/public/${item['defect_images']}"));
+                },
                 item: item,
               ),
             ],
@@ -204,9 +215,13 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Order: ${item['booking_code'] ?? ''}'),
+            Text(
+              'Order: ${item['booking_code'] ?? ''}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             Text(
               'Barcode: ${item['barcode'] ?? ''}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -214,9 +229,13 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Order Date: ${_formatDate(item['created_at'], 'dd MMM')}'),
+            Text(
+              'Order Date: ${_formatDate(item['created_at'], 'dd MMM')}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             Text(
               'Due Date: ${_formatDate(item['drop_date'], 'dd MMM, yy')}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -226,9 +245,11 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
           children: [
             Text(
               'Garment: ${item['sub_cloths_name'] ?? ''}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
               'Service: ${item['servicename'] ?? ''}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         )
@@ -239,8 +260,7 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
   Widget _buildImageSection({
     required String title,
     required String imageKey,
-    required VoidCallback onGalTap,
-    required VoidCallback onCamTap,
+    required String bookingId,
     required VoidCallback onViewTap,
     required dynamic item,
   }) {
@@ -250,65 +270,98 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16)),
+          Text(title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              )),
           const SizedBox(width: 32),
-          if (title == "Cloth" || title == "Stain") const SizedBox(width: 10),
+          if (title == "Cloth :-" || title == "Stain :-")
+            const SizedBox(width: 8),
           GestureDetector(
-            onTap: onCamTap,
-            child: CircleAvatar(
-              backgroundColor: Colors.grey.shade300,
-              radius: 15,
-              child: const Icon(
+            onTap: () async {
+              await ImagePickerCropper.uploadImage(
+                context: context,
+                source: ImageSource.camera,
+                barcodeId: bookingId,
+                imageKey: imageKey,
+                imagePathCallback: (path) {
+                  if (path != null) {
+                    fetchData();
+                  }
+                },
+              );
+            },
+            child: const CircleAvatar(
+              backgroundColor: Color.fromARGB(255, 213, 211, 211),
+              radius: 16,
+              child: Icon(
                 Icons.camera_alt_outlined,
-                size: 18,
-                color: Colors.black87,
+                size: 20,
+                weight: 2.5,
+                color: Colors.black,
               ),
             ),
           ),
           const SizedBox(width: 32),
           GestureDetector(
-            onTap: onGalTap,
-            child: CircleAvatar(
-              backgroundColor: Colors.grey.shade300,
-              radius: 15,
-              child: const Icon(
+            onTap: () async {
+              await ImagePickerCropper.uploadImage(
+                context: context,
+                source: ImageSource.gallery,
+                barcodeId: bookingId,
+                imageKey: imageKey,
+                imagePathCallback: (path) {
+                  if (path != null) {
+                    fetchData();
+                  }
+                },
+              );
+            },
+            child: const CircleAvatar(
+              backgroundColor: Color.fromARGB(255, 213, 211, 211),
+              radius: 16,
+              child: Icon(
                 Icons.upload,
-                size: 18,
-                color: Colors.black87,
+                size: 20,
+                weight: 2,
+                color: Colors.black,
               ),
             ),
           ),
           const SizedBox(width: 32),
-          item[imageKey] != null
-              ? Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: GestureDetector(
-                    onTap: onViewTap,
-                    child: Row(
-                      children: [
-                        Text(
-                          'View',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.remove_red_eye_outlined,
-                          size: 16,
-                          color: Colors.blue[700],
-                        ),
-                      ],
+          if (item[imageKey] != null && item[imageKey].toString().isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 202, 233, 255),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: GestureDetector(
+                onTap: onViewTap,
+                child: Row(
+                  children: [
+                    Text(
+                      'View',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[800],
+                      ),
                     ),
-                  ),
-                )
-              : const SizedBox(width: 36),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.remove_red_eye_outlined,
+                      size: 18,
+                      weight: 2.5,
+                      color: Colors.blue[800],
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            const SizedBox(width: 32),
         ],
       ),
     );
@@ -321,5 +374,21 @@ class _BarcodeSearchScreenState extends State<BarcodeSearchScreen> {
     } catch (e) {
       return 'Invalid Date';
     }
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  final String imageUrl;
+
+  const FullScreenImage({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Uploaded Image')),
+      body: Center(
+        child: Image.network(imageUrl),
+      ),
+    );
   }
 }
