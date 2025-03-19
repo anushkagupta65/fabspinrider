@@ -1,0 +1,2 @@
+C:/Users/DELL/Desktop/projects/fabspinrider/android/app/.cxx/RelWithDebInfo/6q1g1ep5/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/DELL/Desktop/projects/fabspinrider/android/app/.cxx/RelWithDebInfo/6q1g1ep5/armeabi-v7a/CMakeFiles/rebuild_cache.dir
