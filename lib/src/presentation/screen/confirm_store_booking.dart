@@ -194,7 +194,10 @@ class _ConfirmStoreBookingState extends State<ConfirmStoreBooking> {
                         const SizedBox(height: 10),
                         _summaryCard(),
                         const SizedBox(height: 15),
-                        _confirmButton()
+                        _confirmButton(),
+                        const SizedBox(
+                          height: 40,
+                        ),
                       ],
                     ),
                   ),

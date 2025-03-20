@@ -490,6 +490,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                               ),
                       ),
                     ),
+                    const SizedBox(
+                      height: 40,
+                    ),
                   ],
                 ),
               ),

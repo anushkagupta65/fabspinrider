@@ -30,7 +30,7 @@ class ClothItem {
       id: json['id'],
       subClothsName: json['sub_cloths_name'],
       barcode: json['barcode'],
-      serviceName: json['service_name'],
+      serviceName: json['service_name'] ?? '',
       bookingImages:
           json['booking_image'] != null ? [json['booking_image']] : null,
       stainImages: json['stain_images'] != null ? [json['stain_images']] : null,
@@ -244,8 +244,10 @@ class _BarcodeScreenState extends State<BarcodeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text('Barcode: ${item.barcode}'),
-                            const SizedBox(height: 8),
-                            Text('Services: ${item.serviceName}'),
+                            if (item.serviceName.isNotEmpty)
+                              const SizedBox(height: 8),
+                            if (item.serviceName.isNotEmpty)
+                              Text('Service: ${item.serviceName}'),
                             const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -278,6 +280,9 @@ class _BarcodeScreenState extends State<BarcodeScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: _confirmButton(context),
+          ),
+          const SizedBox(
+            height: 40,
           ),
         ],
       ),

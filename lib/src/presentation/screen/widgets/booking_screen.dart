@@ -34,6 +34,9 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint(
+        "\n\n ========= These are selected clothes recieved ${widget.selectedClothes} ========= \n\n",
+        wrapWidth: null);
     counters =
         List<int>.filled(widget.selectedClothes.length, 1, growable: true);
     controllers = List<TextEditingController>.generate(
@@ -718,7 +721,10 @@ class _BookingScreenState extends State<BookingScreen> {
                   'Add Order',
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
-              )
+              ),
+              const SizedBox(
+                height: 40,
+              ),
             ],
           ),
         ),
